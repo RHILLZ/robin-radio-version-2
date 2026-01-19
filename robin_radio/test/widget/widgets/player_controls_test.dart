@@ -140,8 +140,6 @@ void main() {
 
     testWidgets('disables skip previous button when canSkipPrevious is false',
         (tester) async {
-      var tapped = false;
-
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -151,7 +149,7 @@ void main() {
               canSkipPrevious: false,
               canSkipNext: true,
               onPlayPause: () {},
-              onSkipPrevious: () => tapped = true,
+              onSkipPrevious: () {},
               onSkipNext: () {},
             ),
           ),

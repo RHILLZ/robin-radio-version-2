@@ -115,61 +115,84 @@ class AudioService {
   }
 
   /// Plays the current track in the queue
-  /// Throws an exception if the audio source cannot be loaded
+  /// If the track fails to load, automatically skips to the next track
+  /// Throws an exception only if all remaining tracks fail
   Future<void> _playCurrentTrack() async {
-    final track = _currentQueue?.currentTrack;
-    if (track == null) return;
+    await _playCurrentTrackWithRetry(maxRetries: 3);
+  }
 
-    try {
-      // Check for cached version first
-      String audioUrl = track.audioUrl;
-      if (_cacheService != null) {
-        final cachedUrl = await _cacheService!.getCachedUrl(track);
-        if (cachedUrl != null) {
-          audioUrl = cachedUrl;
+  /// Attempts to play the current track, with automatic skip on failure
+  Future<void> _playCurrentTrackWithRetry({int maxRetries = 3}) async {
+    int attempts = 0;
+
+    while (attempts < maxRetries) {
+      final track = _currentQueue?.currentTrack;
+      if (track == null) return;
+
+      try {
+        // Check for cached version first
+        String audioUrl = track.audioUrl;
+        if (_cacheService != null) {
+          final cachedUrl = await _cacheService.getCachedUrl(track);
+          if (cachedUrl != null) {
+            audioUrl = cachedUrl;
+          }
         }
+
+        // Determine if we're using a local file or remote URL
+        final uri = audioUrl.startsWith('/')
+            ? Uri.file(audioUrl)
+            : Uri.parse(audioUrl);
+
+        // Create audio source with MediaItem tag for background playback metadata
+        final audioSource = AudioSource.uri(
+          uri,
+          tag: MediaItem(
+            id: track.id,
+            album: track.albumTitle,
+            title: track.title,
+            artist: track.artistName,
+            artUri:
+                track.coverUrl.isNotEmpty ? Uri.parse(track.coverUrl) : null,
+            duration: track.duration != null
+                ? Duration(seconds: track.duration!)
+                : null,
+          ),
+        );
+
+        await _player.setAudioSource(audioSource);
+        await _player.play();
+
+        // Cache the track in the background after starting playback
+        if (_cacheService != null && !audioUrl.startsWith('/')) {
+          // Only cache if we played from remote URL (not already cached)
+          _cacheService.cacheTrack(track);
+        }
+        return; // Success, exit the retry loop
+      } on PlayerException {
+        // Track failed to load, try to skip to next
+        attempts++;
+        if (_currentQueue != null && _currentQueue!.hasNext) {
+          _currentQueue = _currentQueue!.copyWith(
+            currentIndex: _currentQueue!.currentIndex + 1,
+          );
+          continue; // Try next track
+        }
+        // No more tracks, throw
+        throw AudioPlaybackException(
+          'Failed to play track: ${track.title}',
+        );
+      } on PlayerInterruptedException catch (e) {
+        throw AudioPlaybackException(
+          'Playback interrupted for: ${track.title}',
+          cause: e,
+        );
       }
-
-      // Determine if we're using a local file or remote URL
-      final uri = audioUrl.startsWith('/')
-          ? Uri.file(audioUrl)
-          : Uri.parse(audioUrl);
-
-      // Create audio source with MediaItem tag for background playback metadata
-      final audioSource = AudioSource.uri(
-        uri,
-        tag: MediaItem(
-          id: track.id,
-          album: track.albumTitle,
-          title: track.title,
-          artist: track.artistName,
-          artUri: track.coverUrl.isNotEmpty ? Uri.parse(track.coverUrl) : null,
-          duration: track.duration != null
-              ? Duration(seconds: track.duration!)
-              : null,
-        ),
-      );
-
-      await _player.setAudioSource(audioSource);
-      await _player.play();
-
-      // Cache the track in the background after starting playback
-      if (_cacheService != null && !audioUrl.startsWith('/')) {
-        // Only cache if we played from remote URL (not already cached)
-        _cacheService!.cacheTrack(track);
-      }
-    } on PlayerException catch (e) {
-      // Re-throw with more context for error handling upstream
-      throw AudioPlaybackException(
-        'Failed to play track: ${track.title}',
-        cause: e,
-      );
-    } on PlayerInterruptedException catch (e) {
-      throw AudioPlaybackException(
-        'Playback interrupted for: ${track.title}',
-        cause: e,
-      );
     }
+
+    throw AudioPlaybackException(
+      'Failed to play after $maxRetries attempts',
+    );
   }
 }
 

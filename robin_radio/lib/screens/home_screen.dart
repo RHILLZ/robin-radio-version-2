@@ -140,11 +140,14 @@ class HomeScreen extends ConsumerWidget {
           playbackState: playbackState,
           onRadioTap: () => _startRadioMode(ref, catalogState),
         ),
-        // Album grid fills remaining space
+        // Album grid fills remaining space with pull-to-refresh
         Expanded(
-          child: AlbumGrid(
-            albums: catalogState.albums,
-            onAlbumTap: (album) => _navigateToAlbum(context, album),
+          child: RefreshIndicator(
+            onRefresh: () => ref.read(catalogProvider.notifier).refresh(),
+            child: AlbumGrid(
+              albums: catalogState.albums,
+              onAlbumTap: (album) => _navigateToAlbum(context, album),
+            ),
           ),
         ),
         // Error message if playback failed
