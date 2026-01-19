@@ -35,8 +35,8 @@ class AlbumGrid extends StatelessWidget {
             crossAxisCount: crossAxisCount,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
-            // Extra height for title and artist text
-            childAspectRatio: 0.75,
+            // Extra height for title and artist text below square cover
+            childAspectRatio: 0.72,
           ),
           itemCount: albums.length,
           itemBuilder: (context, index) {

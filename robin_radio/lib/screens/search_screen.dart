@@ -18,6 +18,7 @@ class SearchScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final searchState = ref.watch(searchProvider);
     final catalogState = ref.watch(catalogProvider);
+    final playbackState = ref.watch(playbackProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -48,6 +49,16 @@ class SearchScreen extends ConsumerWidget {
             child: _buildContent(context, ref, searchState, catalogState),
           ),
         ],
+      ),
+      bottomNavigationBar: MiniPlayer(
+        onTap: playbackState.currentTrack != null
+            ? () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        PlayerScreen(track: playbackState.currentTrack!),
+                  ),
+                )
+            : null,
       ),
     );
   }

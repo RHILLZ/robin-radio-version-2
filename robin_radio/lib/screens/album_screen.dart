@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/models.dart';
 import '../providers/providers.dart';
 import '../widgets/widgets.dart';
+import 'player_screen.dart';
 
 /// Screen displaying album details with cover and track list
 ///
@@ -22,6 +23,7 @@ class AlbumScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tracks = ref.watch(catalogProvider.notifier).getTracksForAlbum(album.id);
     final currentTrack = ref.watch(currentTrackProvider);
+    final playbackState = ref.watch(playbackProvider);
 
     return Scaffold(
       body: CustomScrollView(
@@ -38,11 +40,24 @@ class AlbumScreen extends ConsumerWidget {
           ),
         ],
       ),
+      bottomNavigationBar: MiniPlayer(
+        onTap: playbackState.currentTrack != null
+            ? () => _navigateToPlayer(context, playbackState.currentTrack!)
+            : null,
+      ),
     );
   }
 
   void _playTrack(WidgetRef ref, List<Track> tracks, int index) {
     ref.read(playbackProvider.notifier).playFromAlbum(tracks, startIndex: index);
+  }
+
+  void _navigateToPlayer(BuildContext context, Track track) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => PlayerScreen(track: track),
+      ),
+    );
   }
 }
 

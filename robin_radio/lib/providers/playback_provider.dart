@@ -112,6 +112,7 @@ class PlaybackNotifier extends StateNotifier<PlaybackState> {
       currentTrack: _audioService.currentTrack,
       queue: _audioService.currentQueue,
       isPlaying: _audioService.isPlaying,
+      isLoading: false,
     );
   }
 
@@ -137,7 +138,12 @@ class PlaybackNotifier extends StateNotifier<PlaybackState> {
 
   /// Plays a single track
   Future<void> playTrack(Track track) async {
-    state = state.copyWith(isLoading: true, error: null);
+    // Set track info immediately so UI updates right away
+    state = state.copyWith(
+      currentTrack: track,
+      isLoading: true,
+      error: null,
+    );
 
     try {
       await _audioService.playFromAlbum([track], startIndex: 0);
@@ -145,6 +151,7 @@ class PlaybackNotifier extends StateNotifier<PlaybackState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
+        currentTrack: null,
         error: 'Failed to play track: $e',
       );
     }
@@ -157,7 +164,13 @@ class PlaybackNotifier extends StateNotifier<PlaybackState> {
       return;
     }
 
-    state = state.copyWith(isLoading: true, error: null);
+    // Set track info immediately so UI updates right away
+    final selectedTrack = tracks[startIndex];
+    state = state.copyWith(
+      currentTrack: selectedTrack,
+      isLoading: true,
+      error: null,
+    );
 
     try {
       await _audioService.playFromAlbum(tracks, startIndex: startIndex);
@@ -165,6 +178,7 @@ class PlaybackNotifier extends StateNotifier<PlaybackState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
+        currentTrack: null,
         error: 'Failed to start album playback: $e',
       );
     }
