@@ -18,28 +18,32 @@ class OfflineIndicator extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    return Container(
-      width: double.infinity,
-      color: Colors.orange.shade800,
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      child: const Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.cloud_off,
-            color: Colors.white,
-            size: 16,
-          ),
-          SizedBox(width: 8),
-          Text(
-            'Offline Mode',
-            style: TextStyle(
+    return Semantics(
+      liveRegion: true,
+      label: 'You are currently offline. Cached music is still available.',
+      child: Container(
+        width: double.infinity,
+        color: Colors.orange.shade800,
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.cloud_off,
               color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
+              size: 16,
             ),
-          ),
-        ],
+            SizedBox(width: 8),
+            Text(
+              'Offline Mode',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
