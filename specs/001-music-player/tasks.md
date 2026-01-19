@@ -210,40 +210,40 @@
 
 ---
 
-## Phase 8: Offline Caching (Cross-Cutting)
+## Phase 8: Offline Caching (Cross-Cutting) ✅
 
 **Goal**: Cache last 10-20 played tracks for offline access
 
-- [ ] T079 Create CacheService in lib/services/cache_service.dart (manages LRU cache of tracks)
-- [ ] T080 Unit test for CacheService in test/unit/services/cache_service_test.dart
-- [ ] T081 Implement cacheTrack(Track) that downloads and stores locally
-- [ ] T082 Implement getCachedUrl(Track) that returns local path if cached
-- [ ] T083 Implement evictOldest() when cache exceeds 20 tracks or 500MB
-- [ ] T084 Create CacheProvider in lib/providers/cache_provider.dart
-- [ ] T085 Integrate CacheService with AudioService (auto-cache on play)
-- [ ] T086 Use LockCachingAudioSource in AudioService for transparent caching
-- [ ] T087 Create OfflineIndicator widget in lib/widgets/offline_indicator.dart
-- [ ] T088 Add connectivity detection to show OfflineIndicator when offline
+- [x] T079 Create CacheService in lib/services/cache_service.dart (manages LRU cache of tracks)
+- [x] T080 Unit test for CacheService in test/unit/services/cache_service_test.dart
+- [x] T081 Implement cacheTrack(Track) that downloads and stores locally
+- [x] T082 Implement getCachedUrl(Track) that returns local path if cached
+- [x] T083 Implement evictOldest() when cache exceeds 20 tracks or 500MB
+- [x] T084 Create CacheProvider in lib/providers/cache_provider.dart
+- [x] T085 Integrate CacheService with AudioService (auto-cache on play)
+- [x] T086 Use LockCachingAudioSource in AudioService for transparent caching
+- [x] T087 Create OfflineIndicator widget in lib/widgets/offline_indicator.dart
+- [x] T088 Add connectivity detection to show OfflineIndicator when offline
 
-**Checkpoint**: Offline caching works - recently played tracks available offline
+**Checkpoint**: Offline caching works - recently played tracks available offline ✅
 
 ---
 
-## Phase 9: Polish & Edge Cases
+## Phase 9: Polish & Edge Cases ✅
 
 **Purpose**: Handle edge cases, improve UX, final testing
 
-- [ ] T089 [P] Add empty state widget for empty catalog in lib/widgets/empty_state.dart
-- [ ] T090 [P] Add error handling for corrupted/missing audio files (skip to next)
-- [ ] T091 [P] Add default placeholder for albums without cover images
-- [ ] T092 [P] Add "No results found" state to SearchResults
-- [ ] T093 Add loading states to HomeScreen, AlbumScreen, SearchScreen
-- [ ] T094 Add pull-to-refresh on HomeScreen to reload catalog
-- [ ] T095 Run flutter analyze and fix any issues
-- [ ] T096 Run flutter test and ensure all tests pass
-- [ ] T097 Test on physical iOS device
-- [ ] T098 Test on physical Android device
-- [ ] T099 Verify performance targets: album grid < 3s, audio start < 2s, search < 1s
+- [x] T089 [P] Add empty state widget for empty catalog in lib/widgets/empty_state.dart (inline in HomeScreen)
+- [x] T090 [P] Add error handling for corrupted/missing audio files (skip to next)
+- [x] T091 [P] Add default placeholder for albums without cover images
+- [x] T092 [P] Add "No results found" state to SearchResults
+- [x] T093 Add loading states to HomeScreen, AlbumScreen, SearchScreen
+- [x] T094 Add pull-to-refresh on HomeScreen to reload catalog
+- [x] T095 Run flutter analyze and fix any issues
+- [x] T096 Run flutter test and ensure all tests pass
+- [ ] T097 Test on physical iOS device (MANUAL)
+- [ ] T098 Test on physical Android device (MANUAL)
+- [ ] T099 Verify performance targets: album grid < 3s, audio start < 2s, search < 1s (MANUAL)
 
 ---
 

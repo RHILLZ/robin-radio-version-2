@@ -140,9 +140,19 @@ class AudioService {
         }
 
         // Determine if we're using a local file or remote URL
-        final uri = audioUrl.startsWith('/')
-            ? Uri.file(audioUrl)
-            : Uri.parse(audioUrl);
+        // Validate URL scheme for security (only allow https/http for remote)
+        final Uri uri;
+        if (audioUrl.startsWith('/')) {
+          uri = Uri.file(audioUrl);
+        } else {
+          final parsed = Uri.parse(audioUrl);
+          if (parsed.scheme != 'https' && parsed.scheme != 'http') {
+            throw AudioPlaybackException(
+              'Invalid audio URL scheme: ${parsed.scheme}',
+            );
+          }
+          uri = parsed;
+        }
 
         // Create audio source with MediaItem tag for background playback metadata
         final audioSource = AudioSource.uri(
