@@ -2,13 +2,19 @@ import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 
 import '../models/models.dart';
+import 'cache_service.dart';
 
 /// Service for managing audio playback
 class AudioService {
   final AudioPlayer _player;
+  final CacheService? _cacheService;
   PlaybackQueue? _currentQueue;
 
-  AudioService({AudioPlayer? player}) : _player = player ?? AudioPlayer();
+  AudioService({
+    AudioPlayer? player,
+    CacheService? cacheService,
+  })  : _player = player ?? AudioPlayer(),
+        _cacheService = cacheService;
 
   /// Current playback queue
   PlaybackQueue? get currentQueue => _currentQueue;
@@ -115,9 +121,23 @@ class AudioService {
     if (track == null) return;
 
     try {
+      // Check for cached version first
+      String audioUrl = track.audioUrl;
+      if (_cacheService != null) {
+        final cachedUrl = await _cacheService!.getCachedUrl(track);
+        if (cachedUrl != null) {
+          audioUrl = cachedUrl;
+        }
+      }
+
+      // Determine if we're using a local file or remote URL
+      final uri = audioUrl.startsWith('/')
+          ? Uri.file(audioUrl)
+          : Uri.parse(audioUrl);
+
       // Create audio source with MediaItem tag for background playback metadata
       final audioSource = AudioSource.uri(
-        Uri.parse(track.audioUrl),
+        uri,
         tag: MediaItem(
           id: track.id,
           album: track.albumTitle,
@@ -132,6 +152,12 @@ class AudioService {
 
       await _player.setAudioSource(audioSource);
       await _player.play();
+
+      // Cache the track in the background after starting playback
+      if (_cacheService != null && !audioUrl.startsWith('/')) {
+        // Only cache if we played from remote URL (not already cached)
+        _cacheService!.cacheTrack(track);
+      }
     } on PlayerException catch (e) {
       // Re-throw with more context for error handling upstream
       throw AudioPlaybackException(

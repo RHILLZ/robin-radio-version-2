@@ -132,6 +132,8 @@ class HomeScreen extends ConsumerWidget {
     // Normal state with content - Radio button and album grid
     return Column(
       children: [
+        // Offline indicator at top
+        const OfflineIndicator(),
         // Radio button section at top
         _RadioSection(
           catalogState: catalogState,

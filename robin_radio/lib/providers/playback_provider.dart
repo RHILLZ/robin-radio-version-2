@@ -5,6 +5,7 @@ import 'package:just_audio/just_audio.dart';
 
 import '../models/models.dart';
 import '../services/services.dart';
+import 'cache_provider.dart';
 
 /// State for the playback
 class PlaybackState {
@@ -60,7 +61,8 @@ class PlaybackState {
 
 /// Provider for the AudioService singleton
 final audioServiceProvider = Provider<AudioService>((ref) {
-  final service = AudioService();
+  final cacheService = ref.watch(cacheServiceProvider);
+  final service = AudioService(cacheService: cacheService);
   ref.onDispose(() => service.dispose());
   return service;
 });
