@@ -1,6 +1,6 @@
 ---
 active: true
-iteration: 3
+iteration: 4
 max_iterations: 20
 completion_promise: "FEATURE_DONE"
 started_at: "2026-01-19T02:29:28Z"
