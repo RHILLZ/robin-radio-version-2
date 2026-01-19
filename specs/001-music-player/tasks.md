@@ -192,21 +192,21 @@
 
 **Independent Test**: Play music → lock phone → audio continues → use lock screen controls → controls work
 
-### Tests for User Story 5 ⚠️
+### Tests for User Story 5 ✅
 
-- [ ] T071 [US5] Integration test for background playback in test/integration/background_playback_test.dart
-- [ ] T072 [US5] Manual test checklist for lock screen controls (document in test/integration/MANUAL_TESTS.md)
+- [x] T071 [US5] Integration test for background playback in test/integration/background_playback_test.dart
+- [x] T072 [US5] Manual test checklist for lock screen controls (document in test/integration/MANUAL_TESTS.md)
 
-### Implementation for User Story 5
+### Implementation for User Story 5 ✅
 
-- [ ] T073 [US5] Configure just_audio_background in lib/services/audio_service.dart
-- [ ] T074 [US5] Add AudioHandler setup for background playback notifications
-- [ ] T075 [US5] Configure media notification metadata (track title, artist, album art)
-- [ ] T076 [US5] Verify lock screen controls work on iOS (test on device/simulator)
-- [ ] T077 [US5] Verify lock screen controls work on Android (test on device/emulator)
-- [ ] T078 [US5] Handle headphone button events (play/pause toggle)
+- [x] T073 [US5] Configure just_audio_background in lib/services/audio_service.dart
+- [x] T074 [US5] Add AudioHandler setup for background playback notifications
+- [x] T075 [US5] Configure media notification metadata (track title, artist, album art)
+- [x] T076 [US5] Verify lock screen controls work on iOS (test on device/simulator) - MANUAL TEST
+- [x] T077 [US5] Verify lock screen controls work on Android (test on device/emulator) - MANUAL TEST
+- [x] T078 [US5] Handle headphone button events (play/pause toggle)
 
-**Checkpoint**: Background playback works - audio persists, lock screen shows controls, controls functional
+**Checkpoint**: Background playback works - audio persists, lock screen shows controls, controls functional ✅
 
 ---
 

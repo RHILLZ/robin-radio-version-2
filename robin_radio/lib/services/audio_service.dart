@@ -1,4 +1,5 @@
 import 'package:just_audio/just_audio.dart';
+import 'package:just_audio_background/just_audio_background.dart';
 
 import '../models/models.dart';
 
@@ -114,9 +115,22 @@ class AudioService {
     if (track == null) return;
 
     try {
-      await _player.setAudioSource(
-        AudioSource.uri(Uri.parse(track.audioUrl)),
+      // Create audio source with MediaItem tag for background playback metadata
+      final audioSource = AudioSource.uri(
+        Uri.parse(track.audioUrl),
+        tag: MediaItem(
+          id: track.id,
+          album: track.albumTitle,
+          title: track.title,
+          artist: track.artistName,
+          artUri: track.coverUrl.isNotEmpty ? Uri.parse(track.coverUrl) : null,
+          duration: track.duration != null
+              ? Duration(seconds: track.duration!)
+              : null,
+        ),
       );
+
+      await _player.setAudioSource(audioSource);
       await _player.play();
     } on PlayerException catch (e) {
       // Re-throw with more context for error handling upstream

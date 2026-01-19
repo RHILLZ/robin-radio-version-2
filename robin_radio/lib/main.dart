@@ -1,12 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:just_audio_background/just_audio_background.dart';
 
 import 'providers/providers.dart';
 import 'screens/screens.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize background audio playback support
+  await JustAudioBackground.init(
+    androidNotificationChannelId: 'com.robinradio.channel.audio',
+    androidNotificationChannelName: 'Robin Radio',
+    androidNotificationOngoing: true,
+  );
+
   await Firebase.initializeApp();
   runApp(const ProviderScope(child: RobinRadioApp()));
 }
