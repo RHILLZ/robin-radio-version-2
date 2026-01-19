@@ -83,7 +83,7 @@
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
 - [ ] T023 [P] [US1] Unit test for AudioService.playShuffled() in test/unit/services/audio_service_test.dart
-- [ ] T024 [P] [US1] Widget test for RadioButton in test/widget/widgets/radio_button_test.dart
+- [x] T024 [P] [US1] Widget test for RadioButton in test/widget/widgets/radio_button_test.dart
 - [ ] T025 [US1] Integration test for radio playback flow in test/integration/radio_playback_test.dart
 
 ### Implementation for User Story 1
@@ -91,7 +91,7 @@
 - [ ] T026 [US1] Create AudioService in lib/services/audio_service.dart (play, pause, skip, previous, setQueue)
 - [ ] T027 [US1] Implement playShuffled(List<Track>) method that creates shuffled PlaybackQueue
 - [ ] T028 [US1] Create PlaybackProvider in lib/providers/playback_provider.dart (exposes current track, queue state)
-- [ ] T029 [US1] Create RadioButton widget in lib/widgets/radio_button.dart (prominent Radio mode trigger)
+- [x] T029 [US1] Create RadioButton widget in lib/widgets/radio_button.dart (prominent Radio mode trigger)
 - [ ] T030 [US1] Create MiniPlayer widget in lib/widgets/mini_player.dart (shows current track info)
 - [ ] T031 [US1] Create HomeScreen in lib/screens/home_screen.dart with RadioButton and MiniPlayer
 - [ ] T032 [US1] Wire HomeScreen to PlaybackProvider for state updates
