@@ -5,6 +5,7 @@ import '../models/models.dart';
 import '../providers/providers.dart';
 import '../widgets/widgets.dart';
 import 'album_screen.dart';
+import 'player_screen.dart';
 
 /// Main home screen for Robin Radio
 ///
@@ -24,7 +25,11 @@ class HomeScreen extends ConsumerWidget {
         centerTitle: true,
       ),
       body: _buildBody(context, ref, catalogState, playbackState),
-      bottomNavigationBar: const MiniPlayer(),
+      bottomNavigationBar: MiniPlayer(
+        onTap: playbackState.currentTrack != null
+            ? () => _navigateToPlayer(context, playbackState.currentTrack!)
+            : null,
+      ),
     );
   }
 
@@ -157,6 +162,14 @@ class HomeScreen extends ConsumerWidget {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => AlbumScreen(album: album),
+      ),
+    );
+  }
+
+  void _navigateToPlayer(BuildContext context, Track track) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => PlayerScreen(track: track),
       ),
     );
   }

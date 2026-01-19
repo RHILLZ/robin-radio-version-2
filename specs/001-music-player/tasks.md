@@ -138,19 +138,19 @@
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T047 [P] [US3] Widget test for PlayerControls in test/widget/widgets/player_controls_test.dart
-- [ ] T048 [P] [US3] Unit test for AudioService play/pause/skip/previous in test/unit/services/audio_service_playback_test.dart
-- [ ] T049 [US3] Integration test for playback controls in test/integration/playback_controls_test.dart
+- [x] T047 [P] [US3] Widget test for PlayerControls in test/widget/widgets/player_controls_test.dart
+- [x] T048 [P] [US3] Unit test for AudioService play/pause/skip/previous in test/unit/services/audio_service_test.dart (done in Phase 3)
+- [x] T049 [US3] Integration test for playback controls in test/integration/playback_controls_test.dart
 
 ### Implementation for User Story 3
 
-- [ ] T050 [US3] Create PlayerControls widget in lib/widgets/player_controls.dart (play/pause, skip, previous buttons)
-- [ ] T051 [US3] Add pause(), resume(), skipNext(), skipPrevious() methods to AudioService
-- [ ] T052 [US3] Update PlaybackProvider to expose isPlaying, canSkipNext, canSkipPrevious states
-- [ ] T053 [US3] Create PlayerScreen in lib/screens/player_screen.dart (full-screen now playing with large controls)
-- [ ] T054 [US3] Update MiniPlayer to expand to PlayerScreen on tap
-- [ ] T055 [US3] Add seekbar/progress indicator to PlayerScreen
-- [ ] T056 [US3] Wire PlayerControls to AudioService via PlaybackProvider
+- [x] T050 [US3] Create PlayerControls widget in lib/widgets/player_controls.dart (play/pause, skip, previous buttons)
+- [x] T051 [US3] Add pause(), resume(), skipNext(), skipPrevious() methods to AudioService (done in Phase 3)
+- [x] T052 [US3] Update PlaybackProvider to expose isPlaying, canSkipNext, canSkipPrevious states (done in Phase 3)
+- [x] T053 [US3] Create PlayerScreen in lib/screens/player_screen.dart (full-screen now playing with large controls)
+- [x] T054 [US3] Update MiniPlayer to expand to PlayerScreen on tap
+- [x] T055 [US3] Add seekbar/progress indicator to PlayerScreen
+- [x] T056 [US3] Wire PlayerControls to AudioService via PlaybackProvider
 
 **Checkpoint**: Playback controls work - pause/play toggles, skip advances, previous goes back
 
