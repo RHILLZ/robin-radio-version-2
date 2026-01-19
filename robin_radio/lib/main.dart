@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 
+import 'firebase_options.dart';
 import 'providers/providers.dart';
 import 'screens/screens.dart';
 
@@ -16,7 +17,9 @@ Future<void> main() async {
     androidNotificationOngoing: true,
   );
 
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const ProviderScope(child: RobinRadioApp()));
 }
 
