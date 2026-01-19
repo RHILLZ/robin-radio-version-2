@@ -84,7 +84,7 @@
 
 - [x] T023 [P] [US1] Unit test for AudioService.playShuffled() in test/unit/services/audio_service_test.dart
 - [x] T024 [P] [US1] Widget test for RadioButton in test/widget/widgets/radio_button_test.dart
-- [ ] T025 [US1] Integration test for radio playback flow in test/integration/radio_playback_test.dart
+- [x] T025 [US1] Integration test for radio playback flow in test/integration/radio_playback_test.dart
 
 ### Implementation for User Story 1
 
