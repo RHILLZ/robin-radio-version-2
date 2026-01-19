@@ -133,6 +133,21 @@ class PlaybackNotifier extends StateNotifier<PlaybackState> {
     }
   }
 
+  /// Plays a single track
+  Future<void> playTrack(Track track) async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      await _audioService.playFromAlbum([track], startIndex: 0);
+      _updateStateFromService();
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to play track: $e',
+      );
+    }
+  }
+
   /// Plays tracks from an album in order
   Future<void> playFromAlbum(List<Track> tracks, {int startIndex = 0}) async {
     if (tracks.isEmpty) {

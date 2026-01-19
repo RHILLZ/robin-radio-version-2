@@ -162,27 +162,27 @@
 
 **Independent Test**: Type "Betles" → see "Beatles" results → tap result → navigates to album or plays track
 
-### Tests for User Story 4 ⚠️
+### Tests for User Story 4 ✅
 
-- [ ] T057 [P] [US4] Unit test for SearchService in test/unit/services/search_service_test.dart
-- [ ] T058 [P] [US4] Widget test for SearchBar in test/widget/widgets/search_bar_test.dart
-- [ ] T059 [P] [US4] Widget test for SearchResults in test/widget/widgets/search_results_test.dart
-- [ ] T060 [US4] Integration test for search flow in test/integration/search_flow_test.dart
+- [x] T057 [P] [US4] Unit test for SearchService in test/unit/services/search_service_test.dart
+- [x] T058 [P] [US4] Widget test for SearchBar in test/widget/widgets/search_bar_test.dart
+- [x] T059 [P] [US4] Widget test for SearchResults in test/widget/widgets/search_results_test.dart
+- [x] T060 [US4] Integration test for search flow in test/integration/search_flow_test.dart
 
-### Implementation for User Story 4
+### Implementation for User Story 4 ✅
 
-- [ ] T061 [US4] Create SearchResult model in lib/models/search_result.dart per contracts/dart-models.md
-- [ ] T062 [US4] Create SearchService in lib/services/search_service.dart (uses fuzzywuzzy for fuzzy matching)
-- [ ] T063 [US4] Implement search(query) that searches artists, albums, tracks and returns ranked SearchResults
-- [ ] T064 [US4] Create SearchProvider in lib/providers/search_provider.dart (manages query and results state)
-- [ ] T065 [US4] Create SearchBar widget in lib/widgets/search_bar.dart (text input with clear button)
-- [ ] T066 [US4] Create SearchResultItem widget in lib/widgets/search_result_item.dart (type icon, title, subtitle)
-- [ ] T067 [US4] Create SearchResults widget in lib/widgets/search_results.dart (list of SearchResultItems)
-- [ ] T068 [US4] Create SearchScreen in lib/screens/search_screen.dart (SearchBar + SearchResults)
-- [ ] T069 [US4] Add search icon to HomeScreen that navigates to SearchScreen
-- [ ] T070 [US4] Wire SearchResultItem tap to navigate (album) or play (track)
+- [x] T061 [US4] Create SearchResult model in lib/models/search_result.dart per contracts/dart-models.md
+- [x] T062 [US4] Create SearchService in lib/services/search_service.dart (uses fuzzywuzzy for fuzzy matching)
+- [x] T063 [US4] Implement search(query) that searches artists, albums, tracks and returns ranked SearchResults
+- [x] T064 [US4] Create SearchProvider in lib/providers/search_provider.dart (manages query and results state)
+- [x] T065 [US4] Create SearchBar widget in lib/widgets/search_bar.dart (text input with clear button)
+- [x] T066 [US4] Create SearchResultItem widget in lib/widgets/search_result_item.dart (type icon, title, subtitle)
+- [x] T067 [US4] Create SearchResults widget in lib/widgets/search_results.dart (list of SearchResultItems)
+- [x] T068 [US4] Create SearchScreen in lib/screens/search_screen.dart (SearchBar + SearchResults)
+- [x] T069 [US4] Add search icon to HomeScreen that navigates to SearchScreen
+- [x] T070 [US4] Wire SearchResultItem tap to navigate (album) or play (track)
 
-**Checkpoint**: Search works - type query, see fuzzy results, tap to navigate/play
+**Checkpoint**: Search works - type query, see fuzzy results, tap to navigate/play ✅
 
 ---
 
