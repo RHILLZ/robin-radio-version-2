@@ -32,7 +32,9 @@ class PlaybackState {
 
   double get progress {
     if (duration == null || duration!.inMilliseconds == 0) return 0;
-    return position.inMilliseconds / duration!.inMilliseconds;
+    final raw = position.inMilliseconds / duration!.inMilliseconds;
+    // Clamp to prevent values > 1.0 due to stream race conditions
+    return raw.clamp(0.0, 1.0);
   }
 
   PlaybackState copyWith({
@@ -174,18 +176,32 @@ class PlaybackNotifier extends StateNotifier<PlaybackState> {
   Future<void> skipNext() async {
     if (!state.hasNext) return;
 
-    state = state.copyWith(isLoading: true);
-    await _audioService.skipNext();
-    _updateStateFromService();
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _audioService.skipNext();
+      _updateStateFromService();
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to skip to next track: $e',
+      );
+    }
   }
 
   /// Skips to the previous track
   Future<void> skipPrevious() async {
     if (!state.hasPrevious) return;
 
-    state = state.copyWith(isLoading: true);
-    await _audioService.skipPrevious();
-    _updateStateFromService();
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _audioService.skipPrevious();
+      _updateStateFromService();
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to skip to previous track: $e',
+      );
+    }
   }
 
   /// Seeks to a position in the current track

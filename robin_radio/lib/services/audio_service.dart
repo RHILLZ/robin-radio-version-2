@@ -108,13 +108,38 @@ class AudioService {
   }
 
   /// Plays the current track in the queue
+  /// Throws an exception if the audio source cannot be loaded
   Future<void> _playCurrentTrack() async {
     final track = _currentQueue?.currentTrack;
     if (track == null) return;
 
-    await _player.setAudioSource(
-      AudioSource.uri(Uri.parse(track.audioUrl)),
-    );
-    await _player.play();
+    try {
+      await _player.setAudioSource(
+        AudioSource.uri(Uri.parse(track.audioUrl)),
+      );
+      await _player.play();
+    } on PlayerException catch (e) {
+      // Re-throw with more context for error handling upstream
+      throw AudioPlaybackException(
+        'Failed to play track: ${track.title}',
+        cause: e,
+      );
+    } on PlayerInterruptedException catch (e) {
+      throw AudioPlaybackException(
+        'Playback interrupted for: ${track.title}',
+        cause: e,
+      );
+    }
   }
+}
+
+/// Exception thrown when audio playback fails
+class AudioPlaybackException implements Exception {
+  final String message;
+  final Object? cause;
+
+  AudioPlaybackException(this.message, {this.cause});
+
+  @override
+  String toString() => 'AudioPlaybackException: $message${cause != null ? ' ($cause)' : ''}';
 }
