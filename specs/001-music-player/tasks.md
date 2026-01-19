@@ -92,7 +92,7 @@
 - [x] T027 [US1] Implement playShuffled(List<Track>) method that creates shuffled PlaybackQueue
 - [x] T028 [US1] Create PlaybackProvider in lib/providers/playback_provider.dart (exposes current track, queue state)
 - [x] T029 [US1] Create RadioButton widget in lib/widgets/radio_button.dart (prominent Radio mode trigger)
-- [ ] T030 [US1] Create MiniPlayer widget in lib/widgets/mini_player.dart (shows current track info)
+- [x] T030 [US1] Create MiniPlayer widget in lib/widgets/mini_player.dart (shows current track info)
 - [ ] T031 [US1] Create HomeScreen in lib/screens/home_screen.dart with RadioButton and MiniPlayer
 - [ ] T032 [US1] Wire HomeScreen to PlaybackProvider for state updates
 - [x] T033 [US1] Add auto-advance to next shuffled track when current track completes
