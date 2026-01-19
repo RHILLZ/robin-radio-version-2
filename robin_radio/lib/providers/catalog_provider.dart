@@ -64,9 +64,15 @@ class CatalogNotifier extends StateNotifier<CatalogState> {
         isLoading: false,
       );
     } catch (e) {
+      // Provide user-friendly error message without exposing internal details
+      String userMessage = 'Unable to load your music library';
+      if (e.toString().contains('network') ||
+          e.toString().contains('SocketException')) {
+        userMessage = 'No internet connection. Please check your network.';
+      }
       state = state.copyWith(
         isLoading: false,
-        error: 'Failed to load catalog: $e',
+        error: userMessage,
       );
     }
   }

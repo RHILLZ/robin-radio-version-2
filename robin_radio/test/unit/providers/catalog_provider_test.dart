@@ -117,7 +117,7 @@ void main() {
       await notifier.loadCatalog();
 
       expect(notifier.state.isLoading, isFalse);
-      expect(notifier.state.error, contains('Failed to load catalog'));
+      expect(notifier.state.error, contains('Unable to load your music library'));
       expect(notifier.state.artists, isEmpty);
     });
 
