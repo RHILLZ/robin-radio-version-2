@@ -15,14 +15,14 @@ import 'radio_playback_test.mocks.dart';
 void main() {
   late MockCatalogService mockCatalogService;
 
-  final testArtist = Artist(
+  const testArtist = Artist(
     id: 'artist-1',
     name: 'Test Artist',
     storagePath: 'Artists/Test Artist',
     albumCount: 1,
   );
 
-  final testAlbum = Album(
+  const testAlbum = Album(
     id: 'album-1',
     title: 'Test Album',
     artistId: 'artist-1',
@@ -32,7 +32,7 @@ void main() {
     trackCount: 3,
   );
 
-  final testTracks = <Track>[
+  const testTracks = <Track>[
     Track(
       id: 'track-1',
       title: 'Song One',
