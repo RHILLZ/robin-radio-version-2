@@ -69,22 +69,37 @@ class SearchResultItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return ListTile(
-      leading: _buildLeading(colorScheme),
-      title: Text(
-        result.title,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
+    return Semantics(
+      button: true,
+      label: _buildAccessibilityLabel(),
+      child: ListTile(
+        leading: _buildLeading(colorScheme),
+        title: Text(
+          result.title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Text(
+          result.subtitle,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(color: colorScheme.onSurfaceVariant),
+        ),
+        trailing: _buildTrailingIcon(colorScheme),
+        onTap: onTap,
       ),
-      subtitle: Text(
-        result.subtitle,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(color: colorScheme.onSurfaceVariant),
-      ),
-      trailing: _buildTrailingIcon(colorScheme),
-      onTap: onTap,
     );
+  }
+
+  String _buildAccessibilityLabel() {
+    switch (result.type) {
+      case SearchResultType.artist:
+        return 'Artist: ${result.title}';
+      case SearchResultType.album:
+        return 'Album: ${result.title} by ${result.subtitle}';
+      case SearchResultType.track:
+        return 'Song: ${result.title} by ${result.subtitle}';
+    }
   }
 
   Widget _buildLeading(ColorScheme colorScheme) {
