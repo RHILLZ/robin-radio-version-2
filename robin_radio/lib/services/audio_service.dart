@@ -1,0 +1,218 @@
+import 'package:just_audio/just_audio.dart';
+import 'package:just_audio_background/just_audio_background.dart';
+
+import '../models/models.dart';
+import 'cache_service.dart';
+
+/// Service for managing audio playback
+class AudioService {
+  final AudioPlayer _player;
+  final CacheService? _cacheService;
+  PlaybackQueue? _currentQueue;
+
+  AudioService({
+    AudioPlayer? player,
+    CacheService? cacheService,
+  })  : _player = player ?? AudioPlayer(),
+        _cacheService = cacheService;
+
+  /// Current playback queue
+  PlaybackQueue? get currentQueue => _currentQueue;
+
+  /// Currently playing track
+  Track? get currentTrack => _currentQueue?.currentTrack;
+
+  /// Whether there's a next track in the queue
+  bool get hasNext => _currentQueue?.hasNext ?? false;
+
+  /// Whether there's a previous track in the queue
+  bool get hasPrevious => _currentQueue?.hasPrevious ?? false;
+
+  /// Whether the player is currently playing
+  bool get isPlaying => _player.playing;
+
+  /// Stream of player state changes
+  Stream<PlayerState> get playerStateStream => _player.playerStateStream;
+
+  /// Stream of playback position
+  Stream<Duration> get positionStream => _player.positionStream;
+
+  /// Stream of track duration
+  Stream<Duration?> get durationStream => _player.durationStream;
+
+  /// Plays all tracks in shuffled order (Radio mode)
+  Future<void> playShuffled(List<Track> tracks) async {
+    if (tracks.isEmpty) {
+      _currentQueue = null;
+      return;
+    }
+
+    _currentQueue = PlaybackQueue.shuffled(tracks);
+    await _playCurrentTrack();
+  }
+
+  /// Plays tracks from an album in order, starting at specified index
+  Future<void> playFromAlbum(List<Track> tracks, {int startIndex = 0}) async {
+    if (tracks.isEmpty) {
+      _currentQueue = null;
+      return;
+    }
+
+    _currentQueue = PlaybackQueue.fromAlbum(tracks, startIndex: startIndex);
+    await _playCurrentTrack();
+  }
+
+  /// Sets the queue and starts playing
+  Future<void> setQueue(PlaybackQueue queue) async {
+    _currentQueue = queue;
+    await _playCurrentTrack();
+  }
+
+  /// Pauses playback
+  Future<void> pause() async {
+    await _player.pause();
+  }
+
+  /// Resumes playback
+  Future<void> resume() async {
+    await _player.play();
+  }
+
+  /// Skips to the next track
+  Future<void> skipNext() async {
+    if (_currentQueue == null || !_currentQueue!.hasNext) return;
+
+    _currentQueue = _currentQueue!.copyWith(
+      currentIndex: _currentQueue!.currentIndex + 1,
+    );
+    await _playCurrentTrack();
+  }
+
+  /// Skips to the previous track
+  Future<void> skipPrevious() async {
+    if (_currentQueue == null || !_currentQueue!.hasPrevious) return;
+
+    _currentQueue = _currentQueue!.copyWith(
+      currentIndex: _currentQueue!.currentIndex - 1,
+    );
+    await _playCurrentTrack();
+  }
+
+  /// Seeks to a position in the current track
+  Future<void> seek(Duration position) async {
+    await _player.seek(position);
+  }
+
+  /// Stops playback and clears the queue
+  Future<void> stop() async {
+    await _player.stop();
+    _currentQueue = null;
+  }
+
+  /// Disposes of the audio player
+  Future<void> dispose() async {
+    await _player.dispose();
+  }
+
+  /// Plays the current track in the queue
+  /// If the track fails to load, automatically skips to the next track
+  /// Throws an exception only if all remaining tracks fail
+  Future<void> _playCurrentTrack() async {
+    await _playCurrentTrackWithRetry(maxRetries: 3);
+  }
+
+  /// Attempts to play the current track, with automatic skip on failure
+  Future<void> _playCurrentTrackWithRetry({int maxRetries = 3}) async {
+    int attempts = 0;
+
+    while (attempts < maxRetries) {
+      final track = _currentQueue?.currentTrack;
+      if (track == null) return;
+
+      try {
+        // Check for cached version first
+        String audioUrl = track.audioUrl;
+        if (_cacheService != null) {
+          final cachedUrl = await _cacheService.getCachedUrl(track);
+          if (cachedUrl != null) {
+            audioUrl = cachedUrl;
+          }
+        }
+
+        // Determine if we're using a local file or remote URL
+        // Validate URL scheme for security (only allow https/http for remote)
+        final Uri uri;
+        if (audioUrl.startsWith('/')) {
+          uri = Uri.file(audioUrl);
+        } else {
+          final parsed = Uri.parse(audioUrl);
+          if (parsed.scheme != 'https' && parsed.scheme != 'http') {
+            throw AudioPlaybackException(
+              'Invalid audio URL scheme: ${parsed.scheme}',
+            );
+          }
+          uri = parsed;
+        }
+
+        // Create audio source with MediaItem tag for background playback metadata
+        final audioSource = AudioSource.uri(
+          uri,
+          tag: MediaItem(
+            id: track.id,
+            album: track.albumTitle,
+            title: track.title,
+            artist: track.artistName,
+            artUri:
+                track.coverUrl.isNotEmpty ? Uri.parse(track.coverUrl) : null,
+            duration: track.duration != null
+                ? Duration(seconds: track.duration!)
+                : null,
+          ),
+        );
+
+        await _player.setAudioSource(audioSource);
+        await _player.play();
+
+        // Cache the track in the background after starting playback
+        if (_cacheService != null && !audioUrl.startsWith('/')) {
+          // Only cache if we played from remote URL (not already cached)
+          _cacheService.cacheTrack(track);
+        }
+        return; // Success, exit the retry loop
+      } on PlayerException {
+        // Track failed to load, try to skip to next
+        attempts++;
+        if (_currentQueue != null && _currentQueue!.hasNext) {
+          _currentQueue = _currentQueue!.copyWith(
+            currentIndex: _currentQueue!.currentIndex + 1,
+          );
+          continue; // Try next track
+        }
+        // No more tracks, throw
+        throw AudioPlaybackException(
+          'Failed to play track: ${track.title}',
+        );
+      } on PlayerInterruptedException catch (e) {
+        throw AudioPlaybackException(
+          'Playback interrupted for: ${track.title}',
+          cause: e,
+        );
+      }
+    }
+
+    throw AudioPlaybackException(
+      'Failed to play after $maxRetries attempts',
+    );
+  }
+}
+
+/// Exception thrown when audio playback fails
+class AudioPlaybackException implements Exception {
+  final String message;
+  final Object? cause;
+
+  AudioPlaybackException(this.message, {this.cause});
+
+  @override
+  String toString() => 'AudioPlaybackException: $message${cause != null ? ' ($cause)' : ''}';
+}
