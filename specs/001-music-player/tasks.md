@@ -25,15 +25,15 @@
 
 **Purpose**: Create Flutter project and configure dependencies
 
-- [ ] T001 Create Flutter project with `flutter create robin_radio --org com.robinradio --platforms ios,android`
-- [ ] T002 Configure pubspec.yaml with dependencies per research.md (just_audio, firebase_storage, riverpod, etc.)
-- [ ] T003 [P] Configure FlutterFire with `flutterfire configure --project robin-radio`
-- [ ] T004 [P] Configure iOS Info.plist for background audio mode
-- [ ] T005 [P] Configure Android AndroidManifest.xml with INTERNET, WAKE_LOCK, FOREGROUND_SERVICE permissions
-- [ ] T006 [P] Add placeholder.png asset to assets/ for missing album covers
-- [ ] T007 Create directory structure: lib/models/, lib/services/, lib/providers/, lib/screens/, lib/widgets/
-- [ ] T008 Create test directory structure: test/unit/, test/widget/, test/integration/
-- [ ] T009 [P] Configure analysis_options.yaml with Flutter lints
+- [x] T001 Create Flutter project with `flutter create robin_radio --org com.robinradio --platforms ios,android`
+- [x] T002 Configure pubspec.yaml with dependencies per research.md (just_audio, firebase_storage, riverpod, etc.)
+- [ ] T003 [P] Configure FlutterFire with `flutterfire configure --project robin-radio` (requires interactive setup)
+- [x] T004 [P] Configure iOS Info.plist for background audio mode
+- [x] T005 [P] Configure Android AndroidManifest.xml with INTERNET, WAKE_LOCK, FOREGROUND_SERVICE permissions
+- [x] T006 [P] Add placeholder.png asset to assets/ for missing album covers
+- [x] T007 Create directory structure: lib/models/, lib/services/, lib/providers/, lib/screens/, lib/widgets/
+- [x] T008 Create test directory structure: test/unit/, test/widget/, test/integration/
+- [x] T009 [P] Configure analysis_options.yaml with Flutter lints
 
 ---
 
@@ -45,28 +45,28 @@
 
 ### Models (Shared by all stories)
 
-- [ ] T010 [P] Create Artist model in lib/models/artist.dart per contracts/dart-models.md
-- [ ] T011 [P] Create Album model in lib/models/album.dart per contracts/dart-models.md
-- [ ] T012 [P] Create Track model in lib/models/track.dart per contracts/dart-models.md
-- [ ] T013 [P] Create PlaybackQueue model in lib/models/playback_queue.dart per contracts/dart-models.md
-- [ ] T014 [P] Create CachedTrack model in lib/models/cached_track.dart per contracts/dart-models.md
-- [ ] T015 Create models barrel export in lib/models/models.dart
+- [x] T010 [P] Create Artist model in lib/models/artist.dart per contracts/dart-models.md
+- [x] T011 [P] Create Album model in lib/models/album.dart per contracts/dart-models.md
+- [x] T012 [P] Create Track model in lib/models/track.dart per contracts/dart-models.md
+- [x] T013 [P] Create PlaybackQueue model in lib/models/playback_queue.dart per contracts/dart-models.md
+- [x] T014 [P] Create CachedTrack model in lib/models/cached_track.dart per contracts/dart-models.md
+- [x] T015 Create models barrel export in lib/models/models.dart
 
 ### Core Services
 
-- [ ] T016 Create CatalogService interface in lib/services/catalog_service.dart (loadCatalog, getArtists, getAlbums, getTracks)
-- [ ] T017 Implement StorageCatalogService in lib/services/storage_catalog_service.dart (scans Firebase Storage per data-model.md)
-- [ ] T018 Create unit test for StorageCatalogService in test/unit/services/storage_catalog_service_test.dart
-- [ ] T019 Create services barrel export in lib/services/services.dart
+- [x] T016 Create CatalogService interface in lib/services/catalog_service.dart (loadCatalog, getArtists, getAlbums, getTracks)
+- [x] T017 Implement StorageCatalogService in lib/services/storage_catalog_service.dart (scans Firebase Storage per data-model.md)
+- [x] T018 Create unit test for StorageCatalogService in test/unit/services/storage_catalog_service_test.dart
+- [x] T019 Create services barrel export in lib/services/services.dart
 
 ### Core Providers
 
-- [ ] T020 Create CatalogProvider in lib/providers/catalog_provider.dart (loads and caches catalog)
-- [ ] T021 Create unit test for CatalogProvider in test/unit/providers/catalog_provider_test.dart
+- [x] T020 Create CatalogProvider in lib/providers/catalog_provider.dart (loads and caches catalog)
+- [x] T021 Create unit test for CatalogProvider in test/unit/providers/catalog_provider_test.dart
 
 ### Firebase Initialization
 
-- [ ] T022 Configure Firebase initialization in lib/main.dart with ProviderScope wrapper
+- [x] T022 Configure Firebase initialization in lib/main.dart with ProviderScope wrapper
 
 **Checkpoint**: Foundation ready - all models exist, catalog loads from Firebase Storage
 
