@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../models/models.dart';
 import '../providers/providers.dart';
 import '../widgets/widgets.dart';
+import 'album_screen.dart';
 
 /// Main home screen for Robin Radio
 ///
-/// Simple layout focused on Mom's primary use case: tap Radio and listen.
-/// Shows catalog stats, prominent Radio button, and MiniPlayer at bottom.
+/// Shows prominent Radio button at top, album grid below, and MiniPlayer at bottom.
+/// Mom can either shuffle all music or browse albums.
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -114,89 +116,87 @@ class HomeScreen extends ConsumerWidget {
       );
     }
 
-    // Normal state with content
-    return SafeArea(
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Music stats
-              _CatalogStats(
-                artistCount: catalogState.artists.length,
-                albumCount: catalogState.albums.length,
-                trackCount: catalogState.tracks.length,
-              ),
-              const SizedBox(height: 48),
-              // Radio button - the main action
-              RadioButton(
-                onPressed: () => _startRadioMode(ref, catalogState),
-                isLoading: playbackState.isLoading && !playbackState.hasTrack,
-              ),
-              const SizedBox(height: 24),
-              // Error message if playback failed
-              if (playbackState.error != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(
-                    playbackState.error!,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                      fontSize: 12,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-            ],
+    // Normal state with content - Radio button and album grid
+    return Column(
+      children: [
+        // Radio button section at top
+        _RadioSection(
+          catalogState: catalogState,
+          playbackState: playbackState,
+          onRadioTap: () => _startRadioMode(ref, catalogState),
+        ),
+        // Album grid fills remaining space
+        Expanded(
+          child: AlbumGrid(
+            albums: catalogState.albums,
+            onAlbumTap: (album) => _navigateToAlbum(context, album),
           ),
         ),
-      ),
+        // Error message if playback failed
+        if (playbackState.error != null)
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: Text(
+              playbackState.error!,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.error,
+                fontSize: 12,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+      ],
     );
   }
 
   void _startRadioMode(WidgetRef ref, CatalogState catalogState) {
     ref.read(playbackProvider.notifier).playShuffled(catalogState.tracks);
   }
+
+  void _navigateToAlbum(BuildContext context, Album album) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => AlbumScreen(album: album),
+      ),
+    );
+  }
 }
 
-class _CatalogStats extends StatelessWidget {
-  final int artistCount;
-  final int albumCount;
-  final int trackCount;
+/// Radio section with button and stats
+class _RadioSection extends StatelessWidget {
+  final CatalogState catalogState;
+  final PlaybackState playbackState;
+  final VoidCallback onRadioTap;
 
-  const _CatalogStats({
-    required this.artistCount,
-    required this.albumCount,
-    required this.trackCount,
+  const _RadioSection({
+    required this.catalogState,
+    required this.playbackState,
+    required this.onRadioTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Column(
-      children: [
-        Icon(
-          Icons.library_music,
-          size: 64,
-          color: theme.colorScheme.primary,
-        ),
-        const SizedBox(height: 16),
-        Text(
-          '$trackCount songs',
-          style: theme.textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.bold,
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          // Stats row
+          Text(
+            '${catalogState.tracks.length} songs • ${catalogState.albums.length} albums',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          '$albumCount albums from $artistCount artists',
-          style: theme.textTheme.bodyLarge?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+          const SizedBox(height: 12),
+          // Radio button
+          RadioButton(
+            onPressed: onRadioTap,
+            isLoading: playbackState.isLoading && !playbackState.hasTrack,
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -110,9 +110,8 @@ void main() {
       await container.read(catalogProvider.notifier).loadCatalog();
       await tester.pumpAndSettle();
 
-      // Verify catalog stats are displayed
-      expect(find.text('3 songs'), findsOneWidget);
-      expect(find.text('1 albums from 1 artists'), findsOneWidget);
+      // Verify catalog stats are displayed (format: "X songs • Y albums")
+      expect(find.text('3 songs • 1 albums'), findsOneWidget);
     });
 
     testWidgets('HomeScreen shows Radio button', (tester) async {

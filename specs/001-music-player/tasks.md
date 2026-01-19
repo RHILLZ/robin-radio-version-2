@@ -109,22 +109,22 @@
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T034 [P] [US2] Widget test for AlbumGrid in test/widget/widgets/album_grid_test.dart
-- [ ] T035 [P] [US2] Widget test for AlbumCard in test/widget/widgets/album_card_test.dart
-- [ ] T036 [P] [US2] Widget test for TrackList in test/widget/widgets/track_list_test.dart
-- [ ] T037 [US2] Integration test for album browsing flow in test/integration/album_browsing_test.dart
+- [x] T034 [P] [US2] Widget test for AlbumGrid in test/widget/widgets/album_grid_test.dart
+- [x] T035 [P] [US2] Widget test for AlbumCard in test/widget/widgets/album_card_test.dart
+- [x] T036 [P] [US2] Widget test for TrackList in test/widget/widgets/track_list_test.dart
+- [x] T037 [US2] Integration test for album browsing flow in test/integration/album_browsing_test.dart
 
 ### Implementation for User Story 2
 
-- [ ] T038 [P] [US2] Create AlbumCard widget in lib/widgets/album_card.dart (cover image, title, artist)
-- [ ] T039 [P] [US2] Create AlbumGrid widget in lib/widgets/album_grid.dart (responsive grid of AlbumCards)
-- [ ] T040 [US2] Integrate AlbumGrid into HomeScreen below RadioButton
-- [ ] T041 [US2] Create TrackListItem widget in lib/widgets/track_list_item.dart (track number, title, playing indicator)
-- [ ] T042 [US2] Create TrackList widget in lib/widgets/track_list.dart (scrollable list of TrackListItems)
-- [ ] T043 [US2] Create AlbumScreen in lib/screens/album_screen.dart (cover, track list, back navigation)
-- [ ] T044 [US2] Add navigation from AlbumCard tap to AlbumScreen
-- [ ] T045 [US2] Wire TrackListItem tap to AudioService.playFromAlbum(album, trackIndex)
-- [ ] T046 [US2] Implement playFromAlbum in AudioService (creates ordered PlaybackQueue starting at index)
+- [x] T038 [P] [US2] Create AlbumCard widget in lib/widgets/album_card.dart (cover image, title, artist)
+- [x] T039 [P] [US2] Create AlbumGrid widget in lib/widgets/album_grid.dart (responsive grid of AlbumCards)
+- [x] T040 [US2] Integrate AlbumGrid into HomeScreen below RadioButton
+- [x] T041 [US2] Create TrackListItem widget in lib/widgets/track_list_item.dart (track number, title, playing indicator)
+- [x] T042 [US2] Create TrackList widget in lib/widgets/track_list.dart (scrollable list of TrackListItems)
+- [x] T043 [US2] Create AlbumScreen in lib/screens/album_screen.dart (cover, track list, back navigation)
+- [x] T044 [US2] Add navigation from AlbumCard tap to AlbumScreen
+- [x] T045 [US2] Wire TrackListItem tap to AudioService.playFromAlbum(album, trackIndex)
+- [x] T046 [US2] Implement playFromAlbum in AudioService (creates ordered PlaybackQueue starting at index)
 
 **Checkpoint**: Album browsing works - grid displays, tap navigates, track selection plays album in order
 
