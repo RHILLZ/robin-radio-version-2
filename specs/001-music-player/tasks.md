@@ -93,8 +93,8 @@
 - [x] T028 [US1] Create PlaybackProvider in lib/providers/playback_provider.dart (exposes current track, queue state)
 - [x] T029 [US1] Create RadioButton widget in lib/widgets/radio_button.dart (prominent Radio mode trigger)
 - [x] T030 [US1] Create MiniPlayer widget in lib/widgets/mini_player.dart (shows current track info)
-- [ ] T031 [US1] Create HomeScreen in lib/screens/home_screen.dart with RadioButton and MiniPlayer
-- [ ] T032 [US1] Wire HomeScreen to PlaybackProvider for state updates
+- [x] T031 [US1] Create HomeScreen in lib/screens/home_screen.dart with RadioButton and MiniPlayer
+- [x] T032 [US1] Wire HomeScreen to PlaybackProvider for state updates
 - [x] T033 [US1] Add auto-advance to next shuffled track when current track completes
 
 **Checkpoint**: Radio mode works - tap button, music plays shuffled, continues automatically
