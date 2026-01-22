@@ -26,12 +26,19 @@ void main() {
 
   late MockCatalogService mockCatalogService;
 
+  /// Creates an empty stream for testing
+  Stream<CatalogEvent> createCatalogStream() async* {
+    yield CatalogLoadComplete(totalAlbums: 0, totalTracks: 0);
+  }
+
   setUp(() {
     mockCatalogService = MockCatalogService();
     when(mockCatalogService.getArtists()).thenReturn([]);
     when(mockCatalogService.getAlbums()).thenReturn([]);
     when(mockCatalogService.getTracks()).thenReturn([]);
     when(mockCatalogService.isLoaded).thenReturn(true);
+    when(mockCatalogService.loadCatalogStream())
+        .thenAnswer((_) => createCatalogStream());
   });
 
   group('PlayerScreen', () {

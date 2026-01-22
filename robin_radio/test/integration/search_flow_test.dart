@@ -19,13 +19,15 @@ void main() {
     albumCount: 2,
   );
 
+  // Albums without cover URLs to bypass loading state in tests
+  // (CachedNetworkImage never completes loading with fake URLs)
   const testAlbums = [
     Album(
       id: 'album-1',
       title: 'Abbey Road',
       artistId: 'artist-1',
       artistName: 'The Beatles',
-      coverUrl: 'https://example.com/abbey.jpg',
+      coverUrl: '', // Empty URL for immediate loaded state in tests
       storagePath: 'Artists/The Beatles/Abbey Road',
       trackCount: 2,
     ),
@@ -34,7 +36,7 @@ void main() {
       title: 'Let It Be',
       artistId: 'artist-1',
       artistName: 'The Beatles',
-      coverUrl: 'https://example.com/letitbe.jpg',
+      coverUrl: '', // Empty URL for immediate loaded state in tests
       storagePath: 'Artists/The Beatles/Let It Be',
       trackCount: 1,
     ),
@@ -79,6 +81,21 @@ void main() {
     ),
   ];
 
+  /// Creates a stream that yields catalog events for testing
+  Stream<CatalogEvent> createCatalogStream() async* {
+    for (int i = 0; i < testAlbums.length; i++) {
+      yield AlbumDiscovered(
+        artist: testArtist,
+        album: testAlbums[i],
+        tracks: testTracks.where((t) => t.albumId == testAlbums[i].id).toList(),
+      );
+    }
+    yield CatalogLoadComplete(
+      totalAlbums: testAlbums.length,
+      totalTracks: testTracks.length,
+    );
+  }
+
   setUp(() {
     mockCatalogService = MockCatalogService();
     when(mockCatalogService.getArtists()).thenReturn([testArtist]);
@@ -92,6 +109,8 @@ void main() {
         tracks: testTracks,
       ),
     );
+    when(mockCatalogService.loadCatalogStream())
+        .thenAnswer((_) => createCatalogStream());
   });
 
   group('Search Flow Integration', () {

@@ -20,12 +20,14 @@ void main() {
     albumCount: 1,
   );
 
+  // Album without cover URL to bypass loading state in tests
+  // (CachedNetworkImage never completes loading with fake URLs)
   const testAlbum = Album(
     id: 'album-1',
     title: 'Test Album',
     artistId: 'artist-1',
     artistName: 'Test Artist',
-    coverUrl: 'https://example.com/cover.jpg',
+    coverUrl: '', // Empty URL for immediate loaded state in tests
     storagePath: 'Artists/Test Artist/Test Album',
     trackCount: 3,
   );
@@ -69,6 +71,19 @@ void main() {
     ),
   ];
 
+  /// Creates a stream that yields catalog events for testing
+  Stream<CatalogEvent> createCatalogStream() async* {
+    yield AlbumDiscovered(
+      artist: testArtist,
+      album: testAlbum,
+      tracks: testTracks,
+    );
+    yield CatalogLoadComplete(
+      totalAlbums: 1,
+      totalTracks: testTracks.length,
+    );
+  }
+
   setUp(() {
     mockCatalogService = MockCatalogService();
     when(mockCatalogService.getArtists()).thenReturn([testArtist]);
@@ -82,6 +97,8 @@ void main() {
         tracks: testTracks,
       ),
     );
+    when(mockCatalogService.loadCatalogStream())
+        .thenAnswer((_) => createCatalogStream());
   });
 
   group('Playback Controls Integration', () {

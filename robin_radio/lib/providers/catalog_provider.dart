@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/models.dart';
@@ -9,6 +11,7 @@ class CatalogState {
   final List<Album> albums;
   final List<Track> tracks;
   final bool isLoading;
+  final bool isLoadingComplete;
   final String? error;
 
   const CatalogState({
@@ -16,16 +19,21 @@ class CatalogState {
     this.albums = const [],
     this.tracks = const [],
     this.isLoading = false,
+    this.isLoadingComplete = false,
     this.error,
   });
 
   bool get isLoaded => artists.isNotEmpty || albums.isNotEmpty;
+
+  /// Returns true if still loading more albums
+  bool get hasMoreToLoad => isLoading && !isLoadingComplete;
 
   CatalogState copyWith({
     List<Artist>? artists,
     List<Album>? albums,
     List<Track>? tracks,
     bool? isLoading,
+    bool? isLoadingComplete,
     String? error,
   }) {
     return CatalogState(
@@ -33,6 +41,7 @@ class CatalogState {
       albums: albums ?? this.albums,
       tracks: tracks ?? this.tracks,
       isLoading: isLoading ?? this.isLoading,
+      isLoadingComplete: isLoadingComplete ?? this.isLoadingComplete,
       error: error,
     );
   }
@@ -46,35 +55,96 @@ final catalogServiceProvider = Provider<CatalogService>((ref) {
 /// Notifier for catalog state management
 class CatalogNotifier extends StateNotifier<CatalogState> {
   final CatalogService _catalogService;
+  StreamSubscription<CatalogEvent>? _loadSubscription;
 
   CatalogNotifier(this._catalogService) : super(const CatalogState());
 
-  /// Loads the catalog from storage
+  /// Loads the catalog from storage using streaming for progressive updates
   Future<void> loadCatalog() async {
     if (state.isLoading) return;
 
-    state = state.copyWith(isLoading: true, error: null);
+    // Cancel any existing subscription
+    await _loadSubscription?.cancel();
 
-    try {
-      final result = await _catalogService.loadCatalog();
-      state = CatalogState(
-        artists: result.artists,
-        albums: result.albums,
-        tracks: result.tracks,
-        isLoading: false,
-      );
-    } catch (e) {
-      // Provide user-friendly error message without exposing internal details
-      String userMessage = 'Unable to load your music library';
-      if (e.toString().contains('network') ||
-          e.toString().contains('SocketException')) {
-        userMessage = 'No internet connection. Please check your network.';
-      }
-      state = state.copyWith(
-        isLoading: false,
-        error: userMessage,
-      );
+    state = state.copyWith(
+      isLoading: true,
+      isLoadingComplete: false,
+      error: null,
+    );
+
+    // Working lists for incremental updates
+    final artists = <Artist>[...state.artists];
+    final albums = <Album>[...state.albums];
+    final tracks = <Track>[...state.tracks];
+    final artistsById = <String, Artist>{};
+
+    // Initialize artist map from existing state
+    for (final artist in artists) {
+      artistsById[artist.id] = artist;
     }
+
+    _loadSubscription = _catalogService.loadCatalogStream().listen(
+      (event) {
+        switch (event) {
+          case AlbumDiscovered():
+            // Add album and tracks
+            albums.add(event.album);
+            tracks.addAll(event.tracks);
+
+            // Update artist (may already exist with updated album count)
+            artistsById[event.artist.id] = event.artist;
+
+            // Update state - triggers UI rebuild
+            state = state.copyWith(
+              artists: List.unmodifiable(artistsById.values.toList()),
+              albums: List.unmodifiable(albums),
+              tracks: List.unmodifiable(tracks),
+            );
+
+          case CatalogLoadComplete():
+            state = state.copyWith(
+              isLoading: false,
+              isLoadingComplete: true,
+            );
+
+          case CatalogLoadError():
+            // Log the actual error for debugging
+            print('Catalog load error: ${event.error}');
+
+            // Provide user-friendly error message
+            String userMessage = event.message;
+            final errorStr = event.error?.toString() ?? '';
+            if (errorStr.contains('network') ||
+                errorStr.contains('SocketException')) {
+              userMessage =
+                  'No internet connection. Please check your network.';
+            } else if (errorStr.contains('permission') ||
+                errorStr.contains('unauthorized') ||
+                errorStr.contains('403')) {
+              userMessage = 'Permission denied. Check Firebase Storage rules.';
+            }
+            state = state.copyWith(
+              isLoading: false,
+              isLoadingComplete: true,
+              error: userMessage,
+            );
+        }
+      },
+      onError: (e) {
+        print('Catalog stream error: $e');
+        state = state.copyWith(
+          isLoading: false,
+          isLoadingComplete: true,
+          error: 'Unable to load your music library',
+        );
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _loadSubscription?.cancel();
+    super.dispose();
   }
 
   /// Gets albums for a specific artist

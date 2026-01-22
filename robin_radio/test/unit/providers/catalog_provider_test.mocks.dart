@@ -65,6 +65,14 @@ class MockCatalogService extends _i1.Mock implements _i2.CatalogService {
           >);
 
   @override
+  _i3.Stream<_i4.CatalogEvent> loadCatalogStream() =>
+      (super.noSuchMethod(
+            Invocation.method(#loadCatalogStream, []),
+            returnValue: _i3.Stream<_i4.CatalogEvent>.empty(),
+          )
+          as _i3.Stream<_i4.CatalogEvent>);
+
+  @override
   List<_i4.Artist> getArtists() =>
       (super.noSuchMethod(
             Invocation.method(#getArtists, []),

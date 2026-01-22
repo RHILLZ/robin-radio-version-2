@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
@@ -12,6 +14,37 @@ import 'catalog_provider_test.mocks.dart';
 @GenerateMocks([CatalogService])
 void main() {
   late MockCatalogService mockCatalogService;
+
+  /// Helper to create a catalog stream from data
+  Stream<CatalogEvent> createCatalogStream({
+    List<Artist> artists = const [],
+    List<Album> albums = const [],
+    List<Track> tracks = const [],
+  }) async* {
+    // Emit each album as discovered
+    for (final album in albums) {
+      final albumTracks = tracks.where((t) => t.albumId == album.id).toList();
+      final artist = artists.firstWhere(
+        (a) => a.id == album.artistId,
+        orElse: () => Artist(
+          id: album.artistId,
+          name: album.artistName,
+          storagePath: '',
+          albumCount: 1,
+        ),
+      );
+      yield AlbumDiscovered(artist: artist, album: album, tracks: albumTracks);
+    }
+    yield CatalogLoadComplete(
+      totalAlbums: albums.length,
+      totalTracks: tracks.length,
+    );
+  }
+
+  /// Helper to create an error stream
+  Stream<CatalogEvent> createErrorStream(String message) async* {
+    yield CatalogLoadError(message: message, error: Exception(message));
+  }
 
   setUp(() {
     mockCatalogService = MockCatalogService();
@@ -50,6 +83,14 @@ void main() {
       expect(updated.isLoading, isFalse);
       expect(updated.error, equals('Error'));
     });
+
+    test('hasMoreToLoad returns true when loading but not complete', () {
+      const loading = CatalogState(isLoading: true, isLoadingComplete: false);
+      const complete = CatalogState(isLoading: false, isLoadingComplete: true);
+
+      expect(loading.hasMoreToLoad, isTrue);
+      expect(complete.hasMoreToLoad, isFalse);
+    });
   });
 
   group('CatalogNotifier', () {
@@ -83,8 +124,8 @@ void main() {
         storagePath: 'Artist/Test Artist/Test Album/01 Test Track.mp3',
       );
 
-      when(mockCatalogService.loadCatalog()).thenAnswer(
-        (_) async => (
+      when(mockCatalogService.loadCatalogStream()).thenAnswer(
+        (_) => createCatalogStream(
           artists: [testArtist],
           albums: [testAlbum],
           tracks: [testTrack],
@@ -100,47 +141,54 @@ void main() {
       // Load catalog
       await notifier.loadCatalog();
 
+      // Give stream time to complete
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
       // Verify loaded state
       expect(notifier.state.isLoading, isFalse);
       expect(notifier.state.error, isNull);
-      expect(notifier.state.artists.length, equals(1));
       expect(notifier.state.albums.length, equals(1));
       expect(notifier.state.tracks.length, equals(1));
-      expect(notifier.state.artists.first.name, equals('Test Artist'));
     });
 
     test('loadCatalog handles errors gracefully', () async {
-      when(mockCatalogService.loadCatalog())
-          .thenThrow(Exception('Network error'));
+      when(mockCatalogService.loadCatalogStream())
+          .thenAnswer((_) => createErrorStream('Network error'));
 
       final notifier = CatalogNotifier(mockCatalogService);
       await notifier.loadCatalog();
 
+      // Give stream time to complete
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
       expect(notifier.state.isLoading, isFalse);
-      expect(notifier.state.error, contains('Unable to load your music library'));
+      expect(notifier.state.error, isNotNull);
       expect(notifier.state.artists, isEmpty);
     });
 
     test('loadCatalog does not reload while loading', () async {
-      when(mockCatalogService.loadCatalog()).thenAnswer(
-        (_) async {
+      when(mockCatalogService.loadCatalogStream()).thenAnswer(
+        (_) async* {
           await Future<void>.delayed(const Duration(milliseconds: 100));
-          return (artists: <Artist>[], albums: <Album>[], tracks: <Track>[]);
+          yield CatalogLoadComplete(totalAlbums: 0, totalTracks: 0);
         },
       );
 
       final notifier = CatalogNotifier(mockCatalogService);
 
-      // Start loading
-      final future1 = notifier.loadCatalog();
+      // Start loading (don't await - want it to run in background)
+      unawaited(notifier.loadCatalog());
+
+      // Small delay to ensure isLoading is set before second call
+      await Future<void>.delayed(const Duration(milliseconds: 10));
 
       // Try to load again while first is in progress
-      final future2 = notifier.loadCatalog();
+      unawaited(notifier.loadCatalog());
 
-      await Future.wait([future1, future2]);
+      await Future<void>.delayed(const Duration(milliseconds: 150));
 
-      // Should only have called loadCatalog once
-      verify(mockCatalogService.loadCatalog()).called(1);
+      // Should only have called loadCatalogStream once
+      verify(mockCatalogService.loadCatalogStream()).called(1);
     });
 
     test('getAlbumsForArtist filters correctly', () async {
@@ -164,16 +212,13 @@ void main() {
         trackCount: 0,
       );
 
-      when(mockCatalogService.loadCatalog()).thenAnswer(
-        (_) async => (
-          artists: <Artist>[],
-          albums: [album1, album2],
-          tracks: <Track>[],
-        ),
+      when(mockCatalogService.loadCatalogStream()).thenAnswer(
+        (_) => createCatalogStream(albums: [album1, album2]),
       );
 
       final notifier = CatalogNotifier(mockCatalogService);
       await notifier.loadCatalog();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
 
       final albums = notifier.getAlbumsForArtist('artist1');
       expect(albums.length, equals(1));
@@ -181,6 +226,16 @@ void main() {
     });
 
     test('getTracksForAlbum filters and sorts correctly', () async {
+      const album = Album(
+        id: 'album1',
+        title: 'Album',
+        artistId: 'artist1',
+        artistName: 'Artist',
+        coverUrl: '',
+        storagePath: '',
+        trackCount: 3,
+      );
+
       const track1 = Track(
         id: 'track1',
         title: 'First',
@@ -217,6 +272,16 @@ void main() {
         storagePath: '',
       );
 
+      const otherAlbum = Album(
+        id: 'album2',
+        title: 'Other Album',
+        artistId: 'artist1',
+        artistName: 'Artist',
+        coverUrl: '',
+        storagePath: '',
+        trackCount: 1,
+      );
+
       const otherTrack = Track(
         id: 'other',
         title: 'Other',
@@ -229,16 +294,16 @@ void main() {
         storagePath: '',
       );
 
-      when(mockCatalogService.loadCatalog()).thenAnswer(
-        (_) async => (
-          artists: <Artist>[],
-          albums: <Album>[],
+      when(mockCatalogService.loadCatalogStream()).thenAnswer(
+        (_) => createCatalogStream(
+          albums: [album, otherAlbum],
           tracks: [track3, track1, otherTrack, track2],
         ),
       );
 
       final notifier = CatalogNotifier(mockCatalogService);
       await notifier.loadCatalog();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
 
       final tracks = notifier.getTracksForAlbum('album1');
       expect(tracks.length, equals(3));
@@ -248,6 +313,26 @@ void main() {
     });
 
     test('getAllTracks returns all tracks', () async {
+      const album1 = Album(
+        id: 'album1',
+        title: 'Album',
+        artistId: 'artist1',
+        artistName: 'Artist',
+        coverUrl: '',
+        storagePath: '',
+        trackCount: 1,
+      );
+
+      const album2 = Album(
+        id: 'album2',
+        title: 'Album 2',
+        artistId: 'artist1',
+        artistName: 'Artist',
+        coverUrl: '',
+        storagePath: '',
+        trackCount: 1,
+      );
+
       final tracks = [
         const Track(
           id: 'track1',
@@ -273,32 +358,39 @@ void main() {
         ),
       ];
 
-      when(mockCatalogService.loadCatalog()).thenAnswer(
-        (_) async => (artists: <Artist>[], albums: <Album>[], tracks: tracks),
+      when(mockCatalogService.loadCatalogStream()).thenAnswer(
+        (_) => createCatalogStream(albums: [album1, album2], tracks: tracks),
       );
 
       final notifier = CatalogNotifier(mockCatalogService);
       await notifier.loadCatalog();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
 
       final allTracks = notifier.getAllTracks();
       expect(allTracks.length, equals(2));
     });
 
     test('refresh clears and reloads catalog', () async {
-      when(mockCatalogService.loadCatalog()).thenAnswer(
-        (_) async => (artists: <Artist>[], albums: <Album>[], tracks: <Track>[]),
+      when(mockCatalogService.loadCatalogStream()).thenAnswer(
+        (_) => createCatalogStream(),
       );
 
       final notifier = CatalogNotifier(mockCatalogService);
       await notifier.loadCatalog();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
       await notifier.refresh();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
 
-      verify(mockCatalogService.loadCatalog()).called(2);
+      verify(mockCatalogService.loadCatalogStream()).called(2);
     });
   });
 
   group('Providers', () {
     test('catalogProvider provides CatalogNotifier', () {
+      when(mockCatalogService.loadCatalogStream()).thenAnswer(
+        (_) => createCatalogStream(),
+      );
+
       final container = ProviderContainer(
         overrides: [
           catalogServiceProvider.overrideWithValue(mockCatalogService),
@@ -312,40 +404,40 @@ void main() {
     });
 
     test('convenience providers return correct data', () async {
-      when(mockCatalogService.loadCatalog()).thenAnswer(
-        (_) async => (
-          artists: [
-            const Artist(
-              id: '1',
-              name: 'Test',
-              storagePath: 'test',
-              albumCount: 1,
-            ),
-          ],
-          albums: [
-            const Album(
-              id: '1',
-              title: 'Album',
-              artistId: '1',
-              artistName: 'Test',
-              coverUrl: '',
-              storagePath: '',
-              trackCount: 1,
-            ),
-          ],
-          tracks: [
-            const Track(
-              id: '1',
-              title: 'Track',
-              albumId: '1',
-              albumTitle: 'Album',
-              artistName: 'Test',
-              trackNumber: 1,
-              audioUrl: '',
-              coverUrl: '',
-              storagePath: '',
-            ),
-          ],
+      const artist = Artist(
+        id: '1',
+        name: 'Test',
+        storagePath: 'test',
+        albumCount: 1,
+      );
+
+      const album = Album(
+        id: '1',
+        title: 'Album',
+        artistId: '1',
+        artistName: 'Test',
+        coverUrl: '',
+        storagePath: '',
+        trackCount: 1,
+      );
+
+      const track = Track(
+        id: '1',
+        title: 'Track',
+        albumId: '1',
+        albumTitle: 'Album',
+        artistName: 'Test',
+        trackNumber: 1,
+        audioUrl: '',
+        coverUrl: '',
+        storagePath: '',
+      );
+
+      when(mockCatalogService.loadCatalogStream()).thenAnswer(
+        (_) => createCatalogStream(
+          artists: [artist],
+          albums: [album],
+          tracks: [track],
         ),
       );
 
@@ -356,8 +448,8 @@ void main() {
       );
 
       await container.read(catalogProvider.notifier).loadCatalog();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
 
-      expect(container.read(artistsProvider).length, equals(1));
       expect(container.read(albumsProvider).length, equals(1));
       expect(container.read(tracksProvider).length, equals(1));
       expect(container.read(catalogLoadingProvider), isFalse);

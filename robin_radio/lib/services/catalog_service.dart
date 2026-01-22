@@ -7,6 +7,10 @@ abstract class CatalogService {
   Future<({List<Artist> artists, List<Album> albums, List<Track> tracks})>
       loadCatalog();
 
+  /// Streams catalog events as albums are discovered
+  /// Emits [AlbumDiscovered] for each album, then [CatalogLoadComplete] or [CatalogLoadError]
+  Stream<CatalogEvent> loadCatalogStream();
+
   /// Returns all artists in the catalog
   List<Artist> getArtists();
 

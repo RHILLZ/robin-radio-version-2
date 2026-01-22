@@ -47,20 +47,6 @@ class HomeScreen extends ConsumerWidget {
     CatalogState catalogState,
     PlaybackState playbackState,
   ) {
-    // Loading state
-    if (catalogState.isLoading) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Loading your music...'),
-          ],
-        ),
-      );
-    }
-
     // Error state
     if (catalogState.error != null) {
       return Center(
@@ -96,8 +82,8 @@ class HomeScreen extends ConsumerWidget {
       );
     }
 
-    // Empty catalog state
-    if (catalogState.tracks.isEmpty) {
+    // Empty catalog state - only show when done loading and truly empty
+    if (!catalogState.isLoading && catalogState.tracks.isEmpty) {
       return const Center(
         child: Padding(
           padding: EdgeInsets.all(24),
@@ -129,7 +115,7 @@ class HomeScreen extends ConsumerWidget {
       );
     }
 
-    // Normal state with content - Radio button and album grid
+    // Show content - Radio button and album grid (even while loading)
     return Column(
       children: [
         // Offline indicator at top
@@ -147,6 +133,7 @@ class HomeScreen extends ConsumerWidget {
             child: AlbumGrid(
               albums: catalogState.albums,
               onAlbumTap: (album) => _navigateToAlbum(context, album),
+              isLoading: catalogState.isLoading,
             ),
           ),
         ),
@@ -212,13 +199,27 @@ class _RadioSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    // Build status text based on loading state
+    String statusText;
+    if (catalogState.hasMoreToLoad) {
+      // Still loading more albums - show progress
+      statusText = '${catalogState.albums.length} albums found...';
+    } else if (catalogState.isLoading) {
+      // Just started loading, no albums yet
+      statusText = 'Loading...';
+    } else {
+      // Done loading - show final counts
+      statusText =
+          '${catalogState.tracks.length} songs \u2022 ${catalogState.albums.length} albums';
+    }
+
     return Container(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          // Stats row
+          // Stats row - shows progressive count while loading
           Text(
-            '${catalogState.tracks.length} songs • ${catalogState.albums.length} albums',
+            statusText,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
