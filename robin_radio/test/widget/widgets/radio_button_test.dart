@@ -5,33 +5,32 @@ import 'package:robin_radio/widgets/radio_button.dart';
 
 void main() {
   group('RadioButton', () {
-    testWidgets('renders with correct text', (tester) async {
+    testWidgets('renders button when not loading', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: RadioButton(onPressed: () {}),
+            body: RadioButton(onToggle: () {}),
           ),
         ),
       );
 
-      expect(find.text('Radio'), findsOneWidget);
+      expect(find.byType(RadioButton), findsOneWidget);
+      expect(find.byIcon(Icons.power_settings_new), findsOneWidget);
     });
 
-    testWidgets('calls onPressed when tapped', (tester) async {
-      var pressed = false;
-
+    testWidgets('does not show loading indicator when not loading', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: RadioButton(onPressed: () => pressed = true),
+            body: RadioButton(
+              onToggle: () {},
+              isLoading: false,
+            ),
           ),
         ),
       );
 
-      await tester.tap(find.byType(RadioButton));
-      await tester.pump();
-
-      expect(pressed, isTrue);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
     });
 
     testWidgets('shows loading indicator when isLoading is true', (tester) async {
@@ -39,7 +38,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: RadioButton(
-              onPressed: () {},
+              onToggle: () {},
               isLoading: true,
             ),
           ),
@@ -49,37 +48,53 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('is disabled when isLoading is true', (tester) async {
-      var pressed = false;
-
+    testWidgets('hides icon when isLoading is true', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: RadioButton(
-              onPressed: () => pressed = true,
+              onToggle: () {},
               isLoading: true,
             ),
           ),
         ),
       );
 
-      await tester.tap(find.byType(RadioButton));
-      await tester.pump();
-
-      expect(pressed, isFalse);
+      // When loading, icon is replaced with loading indicator
+      expect(find.byIcon(Icons.power_settings_new), findsNothing);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('has semantic label for accessibility', (tester) async {
+    testWidgets('has semantic label for "off" state (not playing)', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: RadioButton(onPressed: () {}),
+            body: RadioButton(
+              onToggle: () {},
+              isPlaying: false,
+            ),
           ),
         ),
       );
 
       final semantics = tester.getSemantics(find.byType(RadioButton));
-      expect(semantics.label, contains('Radio'));
+      expect(semantics.label, contains('Radio is off'));
+    });
+
+    testWidgets('has semantic label for "on" state (playing)', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: RadioButton(
+              onToggle: () {},
+              isPlaying: true,
+            ),
+          ),
+        ),
+      );
+
+      final semantics = tester.getSemantics(find.byType(RadioButton));
+      expect(semantics.label, contains('Radio is on'));
     });
 
     testWidgets('has minimum touch target size of 48x48', (tester) async {
@@ -87,7 +102,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: Center(
-              child: RadioButton(onPressed: () {}),
+              child: RadioButton(onToggle: () {}),
             ),
           ),
         ),
@@ -98,16 +113,231 @@ void main() {
       expect(size.height, greaterThanOrEqualTo(48.0));
     });
 
-    testWidgets('displays radio icon', (tester) async {
+    testWidgets('button has correct size (80x80)', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: RadioButton(onPressed: () {}),
+            body: Center(
+              child: RadioButton(onToggle: () {}),
+            ),
           ),
         ),
       );
 
-      expect(find.byIcon(Icons.radio), findsOneWidget);
+      final size = tester.getSize(find.byType(RadioButton));
+      expect(size.width, equals(80.0));
+      expect(size.height, equals(80.0));
+    });
+
+    testWidgets('loading indicator maintains button size', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: RadioButton(
+                onToggle: () {},
+                isLoading: true,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // The loading container should be 80x80 to match the button size
+      final size = tester.getSize(find.byType(RadioButton));
+      expect(size.width, equals(80.0));
+      expect(size.height, equals(80.0));
+    });
+
+    testWidgets('isPlaying state is passed correctly', (tester) async {
+      // Test isPlaying = false
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: RadioButton(
+              onToggle: () {},
+              isPlaying: false,
+            ),
+          ),
+        ),
+      );
+
+      var semantics = tester.getSemantics(find.byType(RadioButton));
+      expect(semantics.label, contains('Radio is off'));
+
+      // Test isPlaying = true
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: RadioButton(
+              onToggle: () {},
+              isPlaying: true,
+            ),
+          ),
+        ),
+      );
+
+      semantics = tester.getSemantics(find.byType(RadioButton));
+      expect(semantics.label, contains('Radio is on'));
+    });
+
+    testWidgets('transitions between loading and non-loading states', (tester) async {
+      // Start with loading
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: RadioButton(
+              onToggle: () {},
+              isLoading: true,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byIcon(Icons.power_settings_new), findsNothing);
+
+      // Transition to non-loading
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: RadioButton(
+              onToggle: () {},
+              isLoading: false,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(find.byIcon(Icons.power_settings_new), findsOneWidget);
+    });
+
+    testWidgets('calls onToggle when tapped', (tester) async {
+      var onToggleCalled = false;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: RadioButton(
+              onToggle: () => onToggleCalled = true,
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(RadioButton));
+      await tester.pump();
+
+      expect(onToggleCalled, isTrue);
+    });
+
+    testWidgets('does not call onToggle when loading', (tester) async {
+      var onToggleCalled = false;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: RadioButton(
+              onToggle: () => onToggleCalled = true,
+              isLoading: true,
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(RadioButton));
+      await tester.pump();
+
+      expect(onToggleCalled, isFalse);
+    });
+
+    testWidgets('shows gray icon when off', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: RadioButton(
+              onToggle: () {},
+              isPlaying: false,
+            ),
+          ),
+        ),
+      );
+
+      // Let animations settle
+      await tester.pumpAndSettle();
+
+      final icon = tester.widget<Icon>(find.byIcon(Icons.power_settings_new));
+      expect(icon.color, equals(const Color(0xFF666666)));
+    });
+
+    testWidgets('shows pink icon when on', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: RadioButton(
+              onToggle: () {},
+              isPlaying: true,
+            ),
+          ),
+        ),
+      );
+
+      // Let animations settle
+      await tester.pumpAndSettle();
+
+      final icon = tester.widget<Icon>(find.byIcon(Icons.power_settings_new));
+      expect(icon.color, equals(const Color(0xFFFF0083)));
+    });
+
+    testWidgets('button visual state syncs with isPlaying changes', (tester) async {
+      // Start with off state
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: RadioButton(
+              onToggle: () {},
+              isPlaying: false,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      var icon = tester.widget<Icon>(find.byIcon(Icons.power_settings_new));
+      expect(icon.color, equals(const Color(0xFF666666)));
+
+      // Change to on state
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: RadioButton(
+              onToggle: () {},
+              isPlaying: true,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      icon = tester.widget<Icon>(find.byIcon(Icons.power_settings_new));
+      expect(icon.color, equals(const Color(0xFFFF0083)));
+
+      // Change back to off state (simulates external stop like MiniPlayer)
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: RadioButton(
+              onToggle: () {},
+              isPlaying: false,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      icon = tester.widget<Icon>(find.byIcon(Icons.power_settings_new));
+      expect(icon.color, equals(const Color(0xFF666666)));
     });
   });
 }

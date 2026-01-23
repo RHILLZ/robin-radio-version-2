@@ -8,6 +8,7 @@ import 'package:robin_radio/models/models.dart';
 import 'package:robin_radio/providers/providers.dart';
 import 'package:robin_radio/screens/screens.dart';
 import 'package:robin_radio/services/services.dart';
+import 'package:robin_radio/widgets/radio_button.dart';
 
 @GenerateMocks([CatalogService, AudioService])
 import 'radio_playback_test.mocks.dart';
@@ -148,9 +149,9 @@ void main() {
       await container.read(catalogProvider.notifier).loadCatalog();
       await tester.pumpAndSettle();
 
-      // Verify Radio button is present
-      expect(find.text('Radio'), findsOneWidget);
-      expect(find.byIcon(Icons.radio), findsOneWidget);
+      // Verify Radio button is present with power icon
+      expect(find.byType(RadioButton), findsOneWidget);
+      expect(find.byIcon(Icons.power_settings_new), findsOneWidget);
     });
 
     testWidgets('Tapping Radio button triggers playback state change',
@@ -172,15 +173,16 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify Radio button exists
-      expect(find.text('Radio'), findsOneWidget);
+      expect(find.byType(RadioButton), findsOneWidget);
+      expect(find.byIcon(Icons.power_settings_new), findsOneWidget);
 
-      // Tap the Radio button
-      await tester.tap(find.text('Radio'));
+      // Tap the RadioButton to trigger playback
+      await tester.tap(find.byType(RadioButton));
       await tester.pump();
 
       // The playback provider should now be in loading state
       // Note: Full audio playback testing requires mocking just_audio
-      // which is complex. This test verifies the UI interaction works.
+      // which is complex. This test verifies the UI wiring works.
     });
 
     testWidgets('HomeScreen shows empty state when no tracks', (tester) async {

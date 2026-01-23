@@ -119,9 +119,8 @@ void main() {
       await container.read(catalogProvider.notifier).loadCatalog();
       await tester.pumpAndSettle();
 
-      // Tap Radio to start playback (which will fail in test, but triggers state)
-      await tester.tap(find.text('Radio'));
-      await tester.pump();
+      // Verify RadioButton (Neon3DButton) exists
+      expect(find.byType(RadioButton), findsOneWidget);
 
       // MiniPlayer should have play/pause control
       // Note: In tests without mocked audio, playback won't actually start

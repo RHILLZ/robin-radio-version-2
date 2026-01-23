@@ -123,14 +123,26 @@ class PlaybackNotifier extends StateNotifier<PlaybackState> {
       return;
     }
 
-    state = state.copyWith(isLoading: true, error: null);
+    // Create a shuffled queue to get the first track for immediate UI update
+    final shuffledQueue = PlaybackQueue.shuffled(tracks);
+    final firstTrack = shuffledQueue.currentTrack;
+
+    // Set track info immediately so UI updates right away (button shows "on" state)
+    state = state.copyWith(
+      currentTrack: firstTrack,
+      queue: shuffledQueue,
+      isLoading: true,
+      error: null,
+    );
 
     try {
-      await _audioService.playShuffled(tracks);
+      await _audioService.setQueue(shuffledQueue);
       _updateStateFromService();
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
+        currentTrack: null,
+        queue: null,
         error: 'Failed to start playback: $e',
       );
     }
