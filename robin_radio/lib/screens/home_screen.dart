@@ -22,7 +22,14 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Robin Radio'),
+        title: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            RobinRadioLogo(height: 28),
+            SizedBox(width: 8),
+            Text('Robin Radio'),
+          ],
+        ),
         centerTitle: true,
         actions: [
           IconButton(
@@ -90,11 +97,7 @@ class HomeScreen extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.library_music_outlined,
-                size: 64,
-                color: Colors.grey,
-              ),
+              RobinRadioLogo(height: 80, showText: true),
               SizedBox(height: 16),
               Text(
                 'No music found',
