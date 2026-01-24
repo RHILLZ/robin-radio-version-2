@@ -127,7 +127,7 @@ class HomeScreen extends ConsumerWidget {
         _RadioSection(
           catalogState: catalogState,
           playbackState: playbackState,
-          onRadioTap: () => _startRadioMode(ref, catalogState),
+          onRadioToggle: () => _toggleRadioMode(ref, catalogState, playbackState),
         ),
         // Album grid fills remaining space with pull-to-refresh
         Expanded(
@@ -157,8 +157,18 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  void _startRadioMode(WidgetRef ref, CatalogState catalogState) {
-    ref.read(playbackProvider.notifier).playShuffled(catalogState.tracks);
+  void _toggleRadioMode(
+    WidgetRef ref,
+    CatalogState catalogState,
+    PlaybackState playbackState,
+  ) {
+    // Use hasTrack to determine if we should stop or start
+    // This handles the case where a track is loaded but paused
+    if (playbackState.hasTrack) {
+      ref.read(playbackProvider.notifier).stop();
+    } else {
+      ref.read(playbackProvider.notifier).playShuffled(catalogState.tracks);
+    }
   }
 
   void _navigateToAlbum(BuildContext context, Album album) {
@@ -190,12 +200,12 @@ class HomeScreen extends ConsumerWidget {
 class _RadioSection extends StatelessWidget {
   final CatalogState catalogState;
   final PlaybackState playbackState;
-  final VoidCallback onRadioTap;
+  final VoidCallback onRadioToggle;
 
   const _RadioSection({
     required this.catalogState,
     required this.playbackState,
-    required this.onRadioTap,
+    required this.onRadioToggle,
   });
 
   @override
@@ -228,9 +238,10 @@ class _RadioSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          // Radio button
+          // Radio button (toggle on/off)
           RadioButton(
-            onPressed: onRadioTap,
+            onToggle: onRadioToggle,
+            isPlaying: playbackState.hasTrack,
             isLoading: playbackState.isLoading && !playbackState.hasTrack,
           ),
         ],

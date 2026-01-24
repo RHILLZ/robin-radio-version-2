@@ -4,15 +4,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:robin_radio/models/models.dart';
 import 'package:robin_radio/widgets/album_card.dart';
 import 'package:robin_radio/widgets/album_grid.dart';
+import 'package:robin_radio/widgets/skeleton_album_card.dart';
 
 void main() {
+  // Albums without cover URLs to bypass loading state in tests
+  // (CachedNetworkImage never completes loading with fake URLs)
   const testAlbums = <Album>[
     Album(
       id: 'album-1',
       title: 'Abbey Road',
       artistId: 'artist-1',
       artistName: 'The Beatles',
-      coverUrl: 'https://example.com/cover1.jpg',
+      coverUrl: '', // Empty URL for immediate loaded state in tests
       storagePath: 'Artists/The Beatles/Abbey Road',
       trackCount: 17,
     ),
@@ -21,7 +24,7 @@ void main() {
       title: 'Dark Side of the Moon',
       artistId: 'artist-2',
       artistName: 'Pink Floyd',
-      coverUrl: 'https://example.com/cover2.jpg',
+      coverUrl: '', // Empty URL for immediate loaded state in tests
       storagePath: 'Artists/Pink Floyd/Dark Side of the Moon',
       trackCount: 10,
     ),
@@ -30,7 +33,7 @@ void main() {
       title: 'Thriller',
       artistId: 'artist-3',
       artistName: 'Michael Jackson',
-      coverUrl: 'https://example.com/cover3.jpg',
+      coverUrl: '', // Empty URL for immediate loaded state in tests
       storagePath: 'Artists/Michael Jackson/Thriller',
       trackCount: 9,
     ),
@@ -119,7 +122,7 @@ void main() {
     });
 
     testWidgets('is scrollable when many albums', (tester) async {
-      // Create many albums to test scrolling
+      // Create many albums to test scrolling (empty coverUrl for immediate loaded state)
       final manyAlbums = List.generate(
         20,
         (i) => Album(
@@ -127,7 +130,7 @@ void main() {
           title: 'Album $i',
           artistId: 'artist-$i',
           artistName: 'Artist $i',
-          coverUrl: 'https://example.com/cover$i.jpg',
+          coverUrl: '', // Empty URL for immediate loaded state in tests
           storagePath: 'Artists/Artist $i/Album $i',
           trackCount: 10,
         ),
@@ -147,6 +150,59 @@ void main() {
       // GridView should be scrollable
       final gridView = tester.widget<GridView>(find.byType(GridView));
       expect(gridView.physics, isNot(const NeverScrollableScrollPhysics()));
+    });
+
+    testWidgets('shows skeleton grid when loading and empty', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: AlbumGrid(
+              albums: const [],
+              onAlbumTap: (_) {},
+              isLoading: true,
+            ),
+          ),
+        ),
+      );
+
+      // Should show skeleton grid, not album cards
+      expect(find.byType(SkeletonAlbumGrid), findsOneWidget);
+      expect(find.byType(AlbumCard), findsNothing);
+    });
+
+    testWidgets('shows albums when loading but has data', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: AlbumGrid(
+              albums: testAlbums,
+              onAlbumTap: (_) {},
+              isLoading: true,
+            ),
+          ),
+        ),
+      );
+
+      // Should show actual albums, not skeletons
+      expect(find.byType(AlbumCard), findsNWidgets(3));
+      expect(find.byType(SkeletonAlbumGrid), findsNothing);
+    });
+
+    testWidgets('uses custom skeleton count', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: AlbumGrid(
+              albums: const [],
+              onAlbumTap: (_) {},
+              isLoading: true,
+              skeletonCount: 8,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(SkeletonAlbumCard), findsNWidgets(8));
     });
   });
 }

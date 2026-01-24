@@ -30,8 +30,9 @@ class Track {
     String artistName,
     String albumTitle,
     String audioUrl,
-    String coverUrl,
-  ) {
+    String coverUrl, {
+    int? duration,
+  }) {
     final filename = item.name;
     final parsed = _parseTrackFilename(filename);
 
@@ -42,7 +43,7 @@ class Track {
       albumTitle: albumTitle,
       artistName: artistName,
       trackNumber: parsed.trackNumber,
-      duration: null,
+      duration: duration,
       audioUrl: audioUrl,
       coverUrl: coverUrl,
       storagePath: item.fullPath,
@@ -50,8 +51,11 @@ class Track {
   }
 
   static ({int trackNumber, String title}) _parseTrackFilename(String filename) {
-    // Pattern: "01 Track Title.mp3"
-    final regex = RegExp(r'^(\d+)\s+(.+)\.mp3$', caseSensitive: false);
+    // Pattern: "01 Track Title.ext" for various audio formats
+    final regex = RegExp(
+      r'^(\d+)\s+(.+)\.(mp3|m4a|aac|wav|flac|ogg)$',
+      caseSensitive: false,
+    );
     final match = regex.firstMatch(filename);
 
     if (match != null) {
@@ -61,8 +65,12 @@ class Track {
       );
     }
 
-    // Fallback for non-standard naming
-    return (trackNumber: 0, title: filename.replaceAll('.mp3', ''));
+    // Fallback for non-standard naming - strip common audio extensions
+    final cleanName = filename.replaceAll(
+      RegExp(r'\.(mp3|m4a|aac|wav|flac|ogg)$', caseSensitive: false),
+      '',
+    );
+    return (trackNumber: 0, title: cleanName);
   }
 
   Track copyWith({
