@@ -73,6 +73,34 @@ class Track {
     return (trackNumber: 0, title: cleanName);
   }
 
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'albumId': albumId,
+        'albumTitle': albumTitle,
+        'artistName': artistName,
+        'trackNumber': trackNumber,
+        'duration': duration,
+        'audioUrl': audioUrl,
+        'coverUrl': coverUrl,
+        'storagePath': storagePath,
+      };
+
+  factory Track.fromJson(Map<String, dynamic> json) {
+    return Track(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      albumId: json['albumId'] as String,
+      albumTitle: json['albumTitle'] as String,
+      artistName: json['artistName'] as String,
+      trackNumber: json['trackNumber'] as int,
+      duration: json['duration'] as int?,
+      audioUrl: json['audioUrl'] as String,
+      coverUrl: json['coverUrl'] as String,
+      storagePath: json['storagePath'] as String,
+    );
+  }
+
   Track copyWith({
     String? id,
     String? title,

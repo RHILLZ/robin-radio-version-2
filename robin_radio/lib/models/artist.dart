@@ -23,6 +23,22 @@ class Artist {
     );
   }
 
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'storagePath': storagePath,
+        'albumCount': albumCount,
+      };
+
+  factory Artist.fromJson(Map<String, dynamic> json) {
+    return Artist(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      storagePath: json['storagePath'] as String,
+      albumCount: json['albumCount'] as int,
+    );
+  }
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||

@@ -37,6 +37,28 @@ class Album {
     );
   }
 
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'artistId': artistId,
+        'artistName': artistName,
+        'coverUrl': coverUrl,
+        'storagePath': storagePath,
+        'trackCount': trackCount,
+      };
+
+  factory Album.fromJson(Map<String, dynamic> json) {
+    return Album(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      artistId: json['artistId'] as String,
+      artistName: json['artistName'] as String,
+      coverUrl: json['coverUrl'] as String,
+      storagePath: json['storagePath'] as String,
+      trackCount: json['trackCount'] as int,
+    );
+  }
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
