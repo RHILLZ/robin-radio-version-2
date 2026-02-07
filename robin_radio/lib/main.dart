@@ -6,6 +6,7 @@ import 'package:just_audio_background/just_audio_background.dart';
 import 'firebase_options.dart';
 import 'providers/providers.dart';
 import 'screens/screens.dart';
+import 'services/catalog_cache_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,7 +21,21 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const ProviderScope(child: RobinRadioApp()));
+
+  // Generate a unique session token for this app launch.
+  // Each cold start gets a new token, so the catalog cache is only
+  // reused within the same session (not across restarts).
+  final sessionToken = DateTime.now().microsecondsSinceEpoch.toString();
+  final catalogCacheService = CatalogCacheService(sessionToken: sessionToken);
+
+  runApp(
+    ProviderScope(
+      overrides: [
+        catalogCacheServiceProvider.overrideWithValue(catalogCacheService),
+      ],
+      child: const RobinRadioApp(),
+    ),
+  );
 }
 
 class RobinRadioApp extends ConsumerStatefulWidget {

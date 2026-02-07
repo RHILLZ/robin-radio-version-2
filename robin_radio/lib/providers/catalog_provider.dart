@@ -55,11 +55,19 @@ final catalogServiceProvider = Provider<CatalogService>((ref) {
 /// Notifier for catalog state management
 class CatalogNotifier extends StateNotifier<CatalogState> {
   final CatalogService _catalogService;
+  final CatalogCacheService? _cacheService;
   StreamSubscription<CatalogEvent>? _loadSubscription;
 
-  CatalogNotifier(this._catalogService) : super(const CatalogState());
+  CatalogNotifier(this._catalogService, {CatalogCacheService? cacheService})
+      : _cacheService = cacheService,
+        super(const CatalogState());
 
-  /// Loads the catalog from storage using streaming for progressive updates
+  /// Loads the catalog, using the session cache if available.
+  ///
+  /// Flow:
+  /// 1. Try to load from cache (same session only).
+  /// 2. If cache hit, populate state instantly and skip Firebase.
+  /// 3. If cache miss, stream from Firebase and save to cache on completion.
   Future<void> loadCatalog() async {
     if (state.isLoading) return;
 
@@ -72,6 +80,31 @@ class CatalogNotifier extends StateNotifier<CatalogState> {
       error: null,
     );
 
+    // Try loading from session cache first
+    if (_cacheService != null) {
+      try {
+        final cached = await _cacheService.loadCatalog();
+        if (cached != null) {
+          state = state.copyWith(
+            artists: List.unmodifiable(cached.artists),
+            albums: List.unmodifiable(cached.albums),
+            tracks: List.unmodifiable(cached.tracks),
+            isLoading: false,
+            isLoadingComplete: true,
+          );
+          return;
+        }
+      } catch (_) {
+        // Cache read failed, fall through to Firebase
+      }
+    }
+
+    // No cache — load from Firebase
+    _loadFromFirebase();
+  }
+
+  /// Streams the catalog from Firebase Storage and caches on completion.
+  void _loadFromFirebase() {
     // Working lists for incremental updates
     final artists = <Artist>[...state.artists];
     final albums = <Album>[...state.albums];
@@ -105,6 +138,13 @@ class CatalogNotifier extends StateNotifier<CatalogState> {
             state = state.copyWith(
               isLoading: false,
               isLoadingComplete: true,
+            );
+
+            // Save to cache for faster access within this session
+            _cacheService?.saveCatalog(
+              artists: state.artists,
+              albums: state.albums,
+              tracks: state.tracks,
             );
 
           case CatalogLoadError():
@@ -165,18 +205,25 @@ class CatalogNotifier extends StateNotifier<CatalogState> {
     return List.unmodifiable(state.tracks);
   }
 
-  /// Refreshes the catalog from storage
+  /// Refreshes the catalog from storage, bypassing cache.
   Future<void> refresh() async {
+    await _cacheService?.clearCache();
     state = const CatalogState();
     await loadCatalog();
   }
 }
 
+/// Provider for the CatalogCacheService (overridden in main with session token)
+final catalogCacheServiceProvider = Provider<CatalogCacheService?>((ref) {
+  return null; // Overridden at app startup with a session-specific instance
+});
+
 /// Main catalog provider
 final catalogProvider =
     StateNotifierProvider<CatalogNotifier, CatalogState>((ref) {
   final service = ref.watch(catalogServiceProvider);
-  return CatalogNotifier(service);
+  final cacheService = ref.watch(catalogCacheServiceProvider);
+  return CatalogNotifier(service, cacheService: cacheService);
 });
 
 /// Convenience providers for specific data
