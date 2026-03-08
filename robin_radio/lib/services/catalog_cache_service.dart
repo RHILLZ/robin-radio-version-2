@@ -7,19 +7,16 @@ import '../models/models.dart';
 
 /// Persists catalog metadata (artists, albums, tracks) to a JSON file on disk.
 ///
-/// The cache uses a session token: when the app starts, it generates a new token.
-/// If the stored token doesn't match the current session, the cache is considered
-/// stale and ignored. This means the cache is only used within the same app session
-/// (i.e., between hot reloads or navigations, not across cold restarts).
+/// The cache persists across app launches so that albums load instantly when
+/// the app is reopened (including after the OS kills the process in the
+/// background). Pull-to-refresh clears the cache to force a fresh Firebase load.
 class CatalogCacheService {
   static const String _cacheFileName = 'catalog_cache.json';
 
-  final String _sessionToken;
   Directory? _cacheDir;
   bool _initialized = false;
 
-  CatalogCacheService({required String sessionToken})
-      : _sessionToken = sessionToken;
+  CatalogCacheService();
 
   Future<void> _ensureInitialized() async {
     if (_initialized) return;
@@ -29,7 +26,7 @@ class CatalogCacheService {
 
   File get _cacheFile => File('${_cacheDir!.path}/$_cacheFileName');
 
-  /// Saves the catalog to disk with the current session token.
+  /// Saves the catalog to disk.
   Future<void> saveCatalog({
     required List<Artist> artists,
     required List<Album> albums,
@@ -38,7 +35,6 @@ class CatalogCacheService {
     await _ensureInitialized();
 
     final data = {
-      'sessionToken': _sessionToken,
       'cachedAt': DateTime.now().toIso8601String(),
       'artists': artists.map((a) => a.toJson()).toList(),
       'albums': albums.map((a) => a.toJson()).toList(),
@@ -48,11 +44,10 @@ class CatalogCacheService {
     await _cacheFile.writeAsString(json.encode(data));
   }
 
-  /// Loads the catalog from disk if the session token matches.
+  /// Loads the catalog from disk.
   ///
   /// Returns null if:
   /// - No cache file exists
-  /// - The session token doesn't match (app was restarted)
   /// - The cache file is corrupted
   Future<CachedCatalog?> loadCatalog() async {
     await _ensureInitialized();
@@ -62,10 +57,6 @@ class CatalogCacheService {
     try {
       final content = await _cacheFile.readAsString();
       final data = json.decode(content) as Map<String, dynamic>;
-
-      // Check session token — reject cache from previous sessions
-      final storedToken = data['sessionToken'] as String?;
-      if (storedToken != _sessionToken) return null;
 
       final artists = (data['artists'] as List)
           .map((j) => Artist.fromJson(j as Map<String, dynamic>))
