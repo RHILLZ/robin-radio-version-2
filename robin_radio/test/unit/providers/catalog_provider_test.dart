@@ -191,6 +191,46 @@ void main() {
       verify(mockCatalogService.loadCatalogStream()).called(1);
     });
 
+    test('loadCatalog skips reload when data is already loaded', () async {
+      when(mockCatalogService.loadCatalogStream()).thenAnswer(
+        (_) => createCatalogStream(
+          artists: [
+            const Artist(
+              id: 'a1',
+              name: 'Artist',
+              storagePath: 'test',
+              albumCount: 1,
+            ),
+          ],
+          albums: [
+            const Album(
+              id: 'al1',
+              title: 'Album',
+              artistId: 'a1',
+              artistName: 'Artist',
+              coverUrl: '',
+              storagePath: '',
+              trackCount: 0,
+            ),
+          ],
+        ),
+      );
+
+      final notifier = CatalogNotifier(mockCatalogService);
+
+      // First load
+      await notifier.loadCatalog();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(notifier.state.isLoaded, isTrue);
+
+      // Second load should be a no-op (isLoaded guard)
+      await notifier.loadCatalog();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      // Should only have called loadCatalogStream once
+      verify(mockCatalogService.loadCatalogStream()).called(1);
+    });
+
     test('getAlbumsForArtist filters correctly', () async {
       const album1 = Album(
         id: 'album1',

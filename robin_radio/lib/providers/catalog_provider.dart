@@ -62,14 +62,15 @@ class CatalogNotifier extends StateNotifier<CatalogState> {
       : _cacheService = cacheService,
         super(const CatalogState());
 
-  /// Loads the catalog, using the session cache if available.
+  /// Loads the catalog, using the disk cache if available.
   ///
   /// Flow:
-  /// 1. Try to load from cache (same session only).
+  /// 1. Try to load from disk cache.
   /// 2. If cache hit, populate state instantly and skip Firebase.
   /// 3. If cache miss, stream from Firebase and save to cache on completion.
   Future<void> loadCatalog() async {
     if (state.isLoading) return;
+    if (state.isLoaded) return;
 
     // Cancel any existing subscription
     await _loadSubscription?.cancel();
@@ -80,7 +81,7 @@ class CatalogNotifier extends StateNotifier<CatalogState> {
       error: null,
     );
 
-    // Try loading from session cache first
+    // Try loading from disk cache first
     if (_cacheService != null) {
       try {
         final cached = await _cacheService.loadCatalog();
@@ -140,7 +141,7 @@ class CatalogNotifier extends StateNotifier<CatalogState> {
               isLoadingComplete: true,
             );
 
-            // Save to cache for faster access within this session
+            // Save to cache for faster access on next launch
             _cacheService?.saveCatalog(
               artists: state.artists,
               albums: state.albums,
@@ -213,9 +214,9 @@ class CatalogNotifier extends StateNotifier<CatalogState> {
   }
 }
 
-/// Provider for the CatalogCacheService (overridden in main with session token)
+/// Provider for the CatalogCacheService
 final catalogCacheServiceProvider = Provider<CatalogCacheService?>((ref) {
-  return null; // Overridden at app startup with a session-specific instance
+  return CatalogCacheService();
 });
 
 /// Main catalog provider
