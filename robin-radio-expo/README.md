@@ -92,8 +92,7 @@ eas build --profile development --platform ios   # dev build for your own device
 
 ## Known follow-ups
 
-- **App icon**: `assets/images/branding/logo_icon.png` is 1536×1024;
-  the iOS icon needs a 1024×1024 square. `assets/images/icon.png` is the
-  Expo placeholder until a square icon is produced.
 - `eas init` / `eas update:configure` must be run once by an authenticated
   user before the first build (they write the EAS project ID into app.json).
+- `assets/images/icon.png` is a 1024×1024 center-crop of the branding logo;
+  regenerate if the branding changes.
