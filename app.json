@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "Robin Radio",
+    "slug": "robin-radio",
+    "version": "2.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "robinradio",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#141218",
+    "ios": {
+      "bundleIdentifier": "com.robinradio.robinRadio",
+      "supportsTablet": false,
+      "infoPlist": {
+        "UIBackgroundModes": ["audio"]
+      }
+    },
+    "android": {
+      "package": "com.robinradio.robinradio",
+      "adaptiveIcon": {
+        "backgroundColor": "#141218",
+        "foregroundImage": "./assets/images/branding/logo_icon_foreground.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#141218",
+          "image": "./assets/images/branding/logo_icon.png",
+          "imageWidth": 220
+        }
+      ]
+    ],
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}
