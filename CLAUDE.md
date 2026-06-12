@@ -4,9 +4,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Robin Radio 2.0 is a personal music PWA for a single user (Robin). Music albums are stored in Firebase Storage with album covers and tracks. Core features: album browsing, search, and a "radio" mode that shuffles all songs.
+Robin Radio 2.0 is a personal music app for a single user (Robin, on an
+iPhone 15 Pro). Music albums are stored in Firebase Storage with album covers
+and tracks. Core features: album browsing, search, and a "radio" mode that
+shuffles all songs.
 
-**Firebase Project**: `audilore-dev`
+**Firebase Project**: `robin-radio` (bucket `robin-radio.appspot.com`)
+
+## Active Codebase
+
+- **`robin-radio-expo/`** — the current app: Expo SDK 56 + React Native +
+  TypeScript + react-native-track-player. See its README for architecture,
+  build, and distribution (EAS internal distribution / ad-hoc, no App Store).
+- `robin_radio/` — the previous Flutter implementation, kept for reference
+  until the Expo app reaches full parity on device. Do not develop new
+  features there.
 
 ## Constitution (Non-Negotiable Principles)
 
