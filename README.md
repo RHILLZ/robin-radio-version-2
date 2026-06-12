@@ -1,7 +1,7 @@
-# Robin Radio (Expo)
+# Robin Radio
 
-Personal music player for a single user, rebuilt with Expo + React Native
-(replacing the Flutter app in `../robin_radio`). Streams a personal music
+Personal music player for a single user, built with Expo + React Native
+(a ground-up rebuild of the original Flutter app). Streams a personal music
 collection from Firebase Storage with a one-tap "Radio" shuffle mode,
 album browsing, fuzzy search, offline caching, and background playback with
 lock-screen controls.
@@ -17,7 +17,7 @@ distribution / ad-hoc signing).**
 | Audio + lock screen | react-native-track-player v4 (native queue, remote controls) |
 | Catalog backend | Firebase Storage (JS SDK) — the folder tree IS the database |
 | State | zustand |
-| Fuzzy search | fuzzball (JS port of fuzzywuzzy — same scoring as the Flutter app) |
+| Fuzzy search | fuzzball (JS port of fuzzywuzzy) |
 | Artwork | expo-image (memory + disk cache) |
 | Audio/catalog cache | expo-file-system (LRU: 20 tracks / 500 MB) |
 | Connectivity | @react-native-community/netinfo |
@@ -37,7 +37,7 @@ src/
 │   └── fs.ts          # expo-file-system wrapper (mockable IO seam)
 ├── stores/            # zustand stores (catalog, player UI state)
 ├── hooks/             # useDebouncedValue, useIsOnline
-└── types/             # data contracts (ported from the Flutter specs)
+└── types/             # data contracts (see specs/001-music-player/contracts)
 ```
 
 The music catalog is built by listing `Artist/{Artist Name}/{Album Title}/`

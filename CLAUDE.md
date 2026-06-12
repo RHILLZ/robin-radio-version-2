@@ -4,27 +4,42 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Robin Radio 2.0 is a personal music app for a single user (Robin, on an
+Robin Radio is a personal music app for a single user (Robin, on an
 iPhone 15 Pro). Music albums are stored in Firebase Storage with album covers
-and tracks. Core features: album browsing, search, and a "radio" mode that
-shuffles all songs.
+and tracks. Core features: album browsing, fuzzy search, and a "radio" mode
+that shuffles all songs. Background playback with lock-screen controls is a
+hard requirement.
 
-**Firebase Project**: `robin-radio` (bucket `robin-radio.appspot.com`)
+**Firebase Project**: `robin-radio` (bucket `robin-radio.appspot.com`).
+The bucket's `Artist/{Artist Name}/{Album Title}/` folder tree IS the
+database — there is no Firestore and no server. See
+`specs/001-music-player/contracts/storage-schema.md` for the schema.
 
-## Active Codebase
+## Stack
 
-- **`robin-radio-expo/`** — the current app: Expo SDK 56 + React Native +
-  TypeScript + react-native-track-player. See its README for architecture,
-  build, and distribution (EAS internal distribution / ad-hoc, no App Store).
-- `robin_radio/` — the previous Flutter implementation, kept for reference
-  until the Expo app reaches full parity on device. Do not develop new
-  features there.
+Expo SDK 56 + React Native + TypeScript + Expo Router, with
+react-native-track-player (audio + lock screen), Firebase JS SDK (Storage
+only), zustand, fuzzball, expo-image, and expo-file-system.
+See README.md for architecture, build, and distribution details
+(EAS internal distribution / ad-hoc signing — no App Store).
+
+**Expo APIs change between SDK versions** — consult the versioned docs at
+https://docs.expo.dev/versions/v56.0.0/ before writing Expo-related code.
+
+## Commands
+
+```bash
+npm test            # Jest (unit + component tests)
+npm run typecheck   # tsc --noEmit
+npx expo start      # Metro dev server (requires a development build, not Expo Go)
+npx expo run:ios    # local iOS Simulator build (macOS only)
+```
 
 ## Constitution (Non-Negotiable Principles)
 
 See `.specify/memory/constitution.md` for full details. Key rules:
 
-1. **Mobile-First PWA**: Design for phone first. FCP < 2s on 3G, TTI < 5s. Test mobile viewport before desktop.
+1. **Mobile-First**: Design for the phone first; test on an iPhone-sized viewport.
 2. **Test-First Development**: TDD mandatory. Write failing tests before implementation.
 3. **Simplicity Over Scale**: No auth, no admin UI, no analytics. Build only what Robin needs.
 
@@ -45,21 +60,23 @@ This project uses speckit for structured development. Available commands:
 ## Key Directories
 
 ```
-.specify/
-├── memory/constitution.md    # Project principles (read before any feature work)
-├── templates/                # Templates for specs, plans, tasks
-└── scripts/bash/             # Setup scripts
+src/
+├── app/                      # Expo Router screens
+├── components/               # UI components
+├── lib/                      # catalog, player, cache, search services
+├── stores/                   # zustand stores
+└── types/                    # data contracts
 
-specs/[feature-name]/         # Feature artifacts (created per feature)
-├── spec.md
-├── plan.md
-├── tasks.md
-└── research.md
+.specify/memory/constitution.md   # Project principles (read before feature work)
+specs/[feature-name]/             # Feature artifacts (spec, plan, tasks)
+__mocks__/                        # Jest manual mocks for native modules
 ```
 
-## PWA Requirements
+## Gotchas
 
-- Offline capability for cached content
-- Installable on iOS/Android home screen
-- Audio playback continues with screen locked
-- Fuzzy search for song/album matching
+- zustand selectors must not return fresh arrays/objects per call
+  (React 19's useSyncExternalStore loops infinitely) — derive with useMemo.
+- Expo Router decodes percent-encoding in route params; catalog ids contain
+  encoded slashes (`%2F`), so match both forms when looking up by id.
+- react-native-track-player is a native module: the app does not run in
+  Expo Go, only in a development build.
