@@ -1,5 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useMemo } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useActiveTrack } from 'react-native-track-player';
@@ -8,6 +9,7 @@ import { AlbumCover } from '../../components/AlbumCover';
 import { MiniPlayer } from '../../components/MiniPlayer';
 import { TrackListItem } from '../../components/TrackListItem';
 import { colors, radii, spacing } from '../../constants/theme';
+import { sortTracksByNumber } from '../../lib/catalog/parse';
 import { playAlbum } from '../../lib/player/playback';
 import { useCatalogStore } from '../../stores/catalogStore';
 import type { Track } from '../../types/catalog';
@@ -15,8 +17,22 @@ import type { Track } from '../../types/catalog';
 export default function AlbumScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const album = useCatalogStore((s) => s.albums.find((a) => a.id === id));
-  const tracks = useCatalogStore((s) => s.tracksForAlbum(id ?? ''));
+  const albums = useCatalogStore((s) => s.albums);
+  // The router decodes percent-encoding in params, so an id like
+  // "Artist%2FAlbum" arrives as "Artist/Album" — match either form.
+  const album = useMemo(
+    () =>
+      id ? albums.find((a) => a.id === id || a.id === encodeURIComponent(id)) : undefined,
+    [albums, id],
+  );
+  // Derive with useMemo — a zustand selector must not return a fresh array
+  // each call, or useSyncExternalStore loops forever.
+  const allTracks = useCatalogStore((s) => s.tracks);
+  const tracks = useMemo(
+    () =>
+      album ? sortTracksByNumber(allTracks.filter((t) => t.albumId === album.id)) : [],
+    [allTracks, album],
+  );
   const activeTrack = useActiveTrack();
 
   const onTrackPress = (track: Track) => {
