@@ -44,3 +44,6 @@ example
 # generated native folders
 /ios
 /android
+
+# stale pre-restructure app directory (build artifacts only)
+/robin-radio-expo/
