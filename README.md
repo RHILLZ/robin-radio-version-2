@@ -75,7 +75,10 @@ eas build --profile development --platform ios   # dev build for your own device
    (ad-hoc signing; the build only installs on registered devices).
 3. **Install**: send her the build link EAS prints; she opens it in Safari
    and taps Install.
-4. **Updates**: JS-only changes ship over the air with
+4. **Enable Developer Mode** (iOS 16+, required for ad-hoc builds — the app
+   won't launch without it): Settings → Privacy & Security → Developer Mode
+   → on → Restart → tap "Turn On" at the prompt after reboot.
+5. **Updates**: JS-only changes ship over the air with
    `eas update --channel internal` — no reinstall needed. Rebuild + resend
    the install link only for native changes or the **annual certificate
    renewal** (set a reminder: ad-hoc provisioning profiles expire after
